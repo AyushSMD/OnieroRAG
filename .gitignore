@@ -1,1 +1,5 @@
 .env
+condaenv*
+env*
+env*/
+spam*

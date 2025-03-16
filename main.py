@@ -17,27 +17,20 @@ template = PromptTemplate.from_template(
 )
 summarizer_chain = template | llm
 
-
-
 text_to_summarize = ""
 with open("input.txt") as f:
     text_to_summarize = f.read()
 
 age = 10
 
-summary = chain.run({
+
+# Execute the summarization chain
+summary = summarizer_chain.invoke(
+    {
         "text": text_to_summarize,
         "age": age
-    })
+    }
+)
+
+print("\n**Generated Summary:**")
 print(summary)
-
-# # Execute the summarization chain
-# summary = summarizer_chain.invoke(
-#     {
-#         "text": text_to_summarize,
-#         "age": age
-#     }
-# )
-
-# print("\n**Generated Summary:**")
-# print(summary)
