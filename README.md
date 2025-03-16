@@ -13,7 +13,7 @@
 Create and activate your conda environment. The following setup creates one with `python 3.11`, which turns out to be pretty compatible for most use cases, along with `nvcc version 12.4`, if you use an Nvidia card.
 
 > [!IMPORTANT]
-> **Windows users only**
+> **Windows Users Only**
 > 
 > In case you aren't able to run `conda` from a regular terminal, you most likely need to launch conda from your start menu, or from a shortcut (such pain). Then, deactivate the base environment by doing:
 > ```sh
