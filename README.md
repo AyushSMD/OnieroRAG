@@ -1,12 +1,12 @@
 # mini-project thingy
 
-## Dependencies (local)
+## Dependencies
 - [Git](https://git-scm.com/downloads/), for version control
 - [Ollama](https://ollama.com/), for managing and running LLMs locally
 - [miniconda](https://www.anaconda.com/download/success), for managing python environments
 
 
-## Setup (local)
+## Setup
 
 ### Environment Setup
 
@@ -52,8 +52,43 @@ Finally, install the rest of the dependencies
 ```sh
 pip install accelerate beautifulsoup4 huggingface_hub langchain langchain-community langchain-huggingface python-dotenv requests sentence_transformers ipykernel iprogress
 ```
+<hr>
 
-### Ollama Setup
+### Huggingface Setup
+
+Make sure you get your huggingface API key. You can do so by:
+- Heading over to https://huggingface.co/settings/tokens
+- Going to `Create new token`
+- Choose type as `Read`, and assign any name of your choice
+- Hit `Create token`
+
+Once done, **in the current working directory**, create a `.env` file. It should look like so:
+```sh
+HUGGINGFACEHUB_API_TOKEN="hf_xxx"
+```
+
+Your directory structure should now look something like this:
+```
+.
+├── .env
+├── env
+│   └── ...
+├── env0.yml
+├── env.yml
+├── .git
+│   └── ...
+├── .gitignore
+├── main.py
+├── README.md
+└── samples
+    └── ...
+```
+<hr>
+
+### Ollama Setup 
+
+> [!TIP]
+> Skip this step if you **do not wish** to run the `llama3.2:3b` model locally, and are okay with making API calls only. [Recommended for systems with low compute power]
 
 Make sure your Ollama client is up and running. Windows users simply need to download and install the client from [here](https://ollama.com/). Linux users will simply figure it out because they aren't crippled.
 
