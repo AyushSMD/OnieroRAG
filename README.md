@@ -58,7 +58,7 @@ pip install accelerate beautifulsoup4 huggingface_hub langchain langchain-commun
 
 > [!NOTE]
 > [Gated Huggingface models](https://huggingface.co/docs/hub/en/models-gated#gated-models) require you to accept their terms and conditions before 
-> You are able to use them, so make sure to check that for your use case. In this
+> you are able to use them, so make sure to check that for your use case. In this
 > demonstration, the llama3.2:3b model that we use is indeed a "gated model".
 
 Make sure you get your huggingface API key. You can do so by:
@@ -95,7 +95,7 @@ Your directory structure should now look something like this:
 > [!TIP]
 > Skip this step if you **do not wish** to run the `llama3.2:3b` model locally, and are okay with making API calls only. [Recommended for systems with low compute power]
 
-Make sure your Ollama client is up and running. Windows users simply need to download and install the client from [here](https://ollama.com/). Linux users will simply figure it out because they aren't crippled.
+Make sure your Ollama client is up and running. Windows users simply need to download and install the client from [here](https://ollama.com/). Linux users will simply figure it out because they aren't crippled. If you are a Linux user, and seem to be otherwise, kill yourself.
 
 Next, get the [llama3.2:3b](https://ollama.com/library/llama3.2) model. Run the following in your terminal:
 ```sh
