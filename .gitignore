@@ -3,3 +3,5 @@ condaenv*
 env*
 env*/
 spam*
+samples/assets/data/*
+.idea

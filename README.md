@@ -56,6 +56,11 @@ pip install accelerate beautifulsoup4 huggingface_hub langchain langchain-commun
 
 ### Huggingface Setup
 
+> [!NOTE]
+> [Gated Huggingface models](https://huggingface.co/docs/hub/en/models-gated#gated-models) require you to accept their terms and conditions before 
+> You are able to use them, so make sure to check that for your use case. In this
+> demonstration, the llama3.2:3b model that we use is indeed a "gated model".
+
 Make sure you get your huggingface API key. You can do so by:
 - Heading over to https://huggingface.co/settings/tokens
 - Going to `Create new token`
@@ -112,3 +117,15 @@ Launch your editor of choice.
 > > **Note:** Make sure you have the [Jupyter Notebook extension pack](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter) installed.
 
 Navigate to the `samples/` directory and look for `main.ipynb`. Select your kernel to use the virtual python environment you created, and then you should be able to run it! Have fun!
+
+
+## Data Sources
+
+- https://dxelab.github.io/dreambank/api.html
+- https://sleepanddreamdatabase.org/
+- https://www.kaggle.com/datasets/sarikakv1221/dreams/data
+- https://dreams.ucsc.edu/Library/domhoff_2008c.html
+- https://www.researchgate.net/publication/330831711_JUNGIAN_AESTHETICS_SYMBOLS_AND_THE_UNCONSCIOUS#full-text
+- https://www.jstor.org/ and https://github.com/sethsch/python-jstor-dfr, for data filtering
+- THE COLLECTED WORKS OF C. G. JUNG VOLUME 9, PART 1
+- https://chatgpt.com/share/67d9a0d7-e2c4-8003-b12d-b9701cf702e6
