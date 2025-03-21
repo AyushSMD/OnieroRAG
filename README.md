@@ -128,4 +128,4 @@ Navigate to the `samples/` directory and look for `main.ipynb`. Select your kern
 - https://www.researchgate.net/publication/330831711_JUNGIAN_AESTHETICS_SYMBOLS_AND_THE_UNCONSCIOUS#full-text
 - https://www.jstor.org/ and https://github.com/sethsch/python-jstor-dfr, for data filtering
 - THE COLLECTED WORKS OF C. G. JUNG VOLUME 9, PART 1
-- https://chatgpt.com/share/67d9a0d7-e2c4-8003-b12d-b9701cf702e6
+<!-- - https://chatgpt.com/share/67d9a0d7-e2c4-8003-b12d-b9701cf702e6 -->
