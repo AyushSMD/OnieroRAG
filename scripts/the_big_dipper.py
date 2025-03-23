@@ -25,7 +25,7 @@ print("loading vector stores...", end=" ", flush=True)
 class CPU_Unpickler(pickle.Unpickler):
     def find_class(self, module, name):
         if module == 'torch.storage' and name == '_load_from_bytes':
-            return lambda b: torch.load(io.BytesIO(b), map_location='cpu')
+            return lambda b: torch.load(io.BytesIO(b), map_location='cpu', weights_only=True)
         else: return super().find_class(module, name)
 
 with open(
@@ -40,19 +40,19 @@ with open(
     "scripts/pickles/freud_interpretations_store.dat", mode="rb"
 ) as f_freud_interpretations_store:
 
-    if torch.cuda.is_available():
-        freud_interpretations_store = pickle.load(f_freud_interpretations_store)
-        dream_dictionary_store = pickle.load(f_dream_dictionary_store)
-        jung_archetypes_store = pickle.load(f_jung_archetypes_store)
-        jung_interpretations_store = pickle.load(f_jung_interpretations_store)
-        personality_types_store = pickle.load(f_personality_types_store)
+    # if torch.cuda.is_available():
+    # freud_interpretations_store = pickle.load(f_freud_interpretations_store)
+    # dream_dictionary_store = pickle.load(f_dream_dictionary_store)
+    # jung_archetypes_store = pickle.load(f_jung_archetypes_store)
+    # jung_interpretations_store = pickle.load(f_jung_interpretations_store)
+    # personality_types_store = pickle.load(f_personality_types_store)
 
-    else:
-        freud_interpretations_store = CPU_Unpickler(f_freud_interpretations_store).load()
-        dream_dictionary_store = CPU_Unpickler(f_dream_dictionary_store).load()
-        jung_archetypes_store = CPU_Unpickler(f_jung_archetypes_store).load()
-        jung_interpretations_store = CPU_Unpickler(f_jung_interpretations_store).load()
-        personality_types_store = CPU_Unpickler(f_personality_types_store).load()
+    # else:
+    freud_interpretations_store = CPU_Unpickler(f_freud_interpretations_store).load()
+    dream_dictionary_store = CPU_Unpickler(f_dream_dictionary_store).load()
+    jung_archetypes_store = CPU_Unpickler(f_jung_archetypes_store).load()
+    jung_interpretations_store = CPU_Unpickler(f_jung_interpretations_store).load()
+    personality_types_store = CPU_Unpickler(f_personality_types_store).load()
 
     print("done")
 
@@ -140,6 +140,7 @@ def main(dream_text:str) -> dict:
     )
 
     data["descriptive_content"] = descriptive_content
+    del dream
     return data
 
 
@@ -147,4 +148,4 @@ if __name__ == "__main__":
     # with open("assets/input.txt") as f:
     #   dream_text = f.read()
     
-    print(main(dream_text="i had a dream where i was suddenly gay"))
+    print(main(dream_text="i had a dream where i fell off of a bridge"))

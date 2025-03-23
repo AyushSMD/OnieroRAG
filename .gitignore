@@ -7,3 +7,4 @@ samples/assets/data/*
 samples/assets/pickles/*
 scripts/pickles/*
 .idea
+__pycache__

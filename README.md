@@ -50,11 +50,11 @@ This should return `Python 3.11.11`, and `12.4` respectively.
 
 Finally, install the rest of the dependencies
 ```sh
-pip install accelerate beautifulsoup4 huggingface_hub langchain langchain-community langchain-huggingface langchain-ollama ollama python-dotenv requests sentence_transformers ipykernel iprogress
+pip install accelerate beautifulsoup4 huggingface_hub langchain langchain-community langchain-huggingface langchain-ollama ollama python-dotenv requests sentence_transformers ipykernel iprogress flask pypdf
 ```
 <hr>
 
-### Huggingface Setup
+### Huggingface Setup [No Longer Needed]
 
 > [!NOTE]
 > [Gated Huggingface models](https://huggingface.co/docs/hub/en/models-gated#gated-models) require you to accept their terms and conditions before 
@@ -105,18 +105,17 @@ ollama run llama3.2:3b
 
 ## The fun part (not really): Execution
 
-Launch your editor of choice.
+Download the pickled data from [here](https://drive.google.com/file/d/1LrHJkjxcl00hal7Bmih_jzStYyUNcKNi/view?usp=sharing), and extract it to `scripts/pickles/`
 
-> **VSCode users:**
-> 
-> Launch your editor in the current working directory.
-> ```sh
-> code .
-> ```
-> 
-> > **Note:** Make sure you have the [Jupyter Notebook extension pack](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter) installed.
+Start the python server with:
+```sh
+python server.py
+```
 
-Navigate to the `samples/` directory and look for `main.ipynb`. Select your kernel to use the virtual python environment you created, and then you should be able to run it! Have fun!
+Try it out by entering a dream prompt:
+```
+curl -X POST http://localhost:8000/llm -F dream="your dream text here"
+```
 
 
 ## Data Sources
@@ -129,3 +128,5 @@ Navigate to the `samples/` directory and look for `main.ipynb`. Select your kern
 - https://www.jstor.org/ and https://github.com/sethsch/python-jstor-dfr, for data filtering
 - THE COLLECTED WORKS OF C. G. JUNG VOLUME 9, PART 1
 <!-- - https://chatgpt.com/share/67d9a0d7-e2c4-8003-b12d-b9701cf702e6 -->
+
+> **TODO:** Add the rest
