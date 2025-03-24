@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Dream Results</title>
+        <link rel="stylesheet" href="../static/css/style.css"/>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Rowdies:wght@300;400;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Oxygen:wght@300;400;700&display=swap" rel="stylesheet">
+    </head>
+    <body>
+        <h1 class="heading">Dream Results</h1>
+        <div class="container" id="contentContainer"></div>
+
+        <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let jsonData = localStorage.getItem("dreamResult");
+            console.log("Raw Data:", jsonData);
+
+            if (jsonData) {
+                try {
+                    let parsedData = JSON.parse(jsonData);
+                    console.log("Parsed Data:", parsedData);
+                    let container = document.getElementById("contentContainer");
+                    container.innerHTML = "";
+
+                    function createElementFromKeyValue(key, value) {
+                        let section = document.createElement("div");
+                        section.classList.add("section");
+                        let heading = document.createElement("h2");
+                        heading.innerText = key.replace(/_/g, ' ');
+                        section.appendChild(heading);
+                        
+                        if (typeof value === "string" || typeof value === "number") {
+                            let paragraph = document.createElement("p");
+                            paragraph.innerText = value;
+                            section.appendChild(paragraph);
+                        } else if (Array.isArray(value)) {
+                            let list = document.createElement("ul");
+                            value.forEach(item => {
+                                let listItem = document.createElement("li");
+                                listItem.innerText = typeof item === "object" ? JSON.stringify(item, null, 2) : item;
+                                list.appendChild(listItem);
+                            });
+                            section.appendChild(list);
+                        } else if (typeof value === "object" && value !== null) {
+                            Object.entries(value).forEach(([subKey, subValue]) => {
+                                section.appendChild(createElementFromKeyValue(subKey, subValue));
+                            });
+                        }
+                        return section;
+                    }
+
+                    Object.entries(parsedData).forEach(([key, value]) => {
+                        container.appendChild(createElementFromKeyValue(key, value));
+                    });
+                } catch (error) {
+                    console.error("Parsing error:", error);
+                    document.body.innerHTML = "<p>Error parsing JSON data.</p>";
+                }
+            } else {
+                document.body.innerHTML = "<p>No data available.</p>";
+            }
+        });
+        </script>
+    </body>
+</html>
+    
