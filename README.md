@@ -126,7 +126,11 @@ curl -X POST http://localhost:8000/llm -F dream="your dream text here"
 - https://dreams.ucsc.edu/Library/domhoff_2008c.html
 - https://www.researchgate.net/publication/330831711_JUNGIAN_AESTHETICS_SYMBOLS_AND_THE_UNCONSCIOUS#full-text
 - https://www.jstor.org/ and https://github.com/sethsch/python-jstor-dfr, for data filtering
+- https://conorneill.com/2018/04/21/understanding-personality-the-12-jungian-archetypes/
 - THE COLLECTED WORKS OF C. G. JUNG VOLUME 9, PART 1
+- SYMBOLS AND THE INTERPRETATION OF DREAMS BY CARL JUNG
+- THE INTERPRETATIONS OF DREAMS BY SIGMUND FREUD
+- THE DREAMER'S DICTIONARY BY  STEARN ROBINSON AND TOM CORBETT
 <!-- - https://chatgpt.com/share/67d9a0d7-e2c4-8003-b12d-b9701cf702e6 -->
 
 > **TODO:** Add the rest
