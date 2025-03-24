@@ -117,6 +117,14 @@ Try it out by entering a dream prompt:
 curl -X POST http://localhost:8000/llm -F dream="your dream text here"
 ```
 
+## More Config Options
+
+In your `.env` file, you can toggle the `USE_CPU` between `1` and `0` to choose whether you wish to use your CPU or GPU:
+```
+USE_CPU=1
+```
+> This defaults to `1`, which means `True`
+
 
 ## Data Sources
 

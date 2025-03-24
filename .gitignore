@@ -8,3 +8,4 @@ samples/assets/pickles/*
 scripts/pickles/*
 .idea
 __pycache__
+log*
