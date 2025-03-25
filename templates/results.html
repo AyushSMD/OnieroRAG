@@ -19,55 +19,56 @@
             <p class="ftr">Made after a lot of criticism from Dhrubajyoti Mandal</p>
         </div>
         <script>
-            let t = 1;
-            document.addEventListener("DOMContentLoaded", function() {
+            document.addEventListener("DOMContentLoaded", function () {
                 let jsonData = localStorage.getItem("dreamResult");
                 console.log("Raw Data:", jsonData);
-        
+
                 if (!jsonData) {
                     document.body.innerHTML = "<p>No data available.</p>";
                     return;
                 }
-        
+
                 try {
                     let parsedData = JSON.parse(jsonData);
                     console.log("Parsed Data:", parsedData);
                     let container = document.getElementById("contentContainer");
                     container.innerHTML = "";
-        
+
+                    let t = 1; // Reset the heading style toggle
+                    let archetype = null;
+
                     function createElementFromKeyValue(key, value, level = 2) {
                         let section = document.createElement("div");
                         section.classList.add("section");
-        
+
                         let heading = document.createElement(`h${level}`);
                         heading.innerText = key.replace(/_/g, ' ');
                         section.appendChild(heading);
-        
+
                         if (typeof value === "string" || typeof value === "number") {
                             let paragraph = document.createElement("p");
                             paragraph.innerText = value;
                             section.appendChild(paragraph);
-                            if (t===1){
-                                paragraph.classList.add('archtype-heading')
-                                t = 0
+
+                            if (t === 1 && key.toLowerCase() === "archetype") {
+                                paragraph.classList.add('archtype-heading');
+                                t = 0; // Ensure only the first "archetype" gets styled
                             }
                         } else if (Array.isArray(value)) {
                             let list = document.createElement("ul");
                             value.forEach(item => {
-                                if (typeof item === "object" && typeof Object.values(item)==="object") {
-                                    if (Object.keys(item)!=='number'){
-                                        let keylist = Object.keys(item)
-                                        console.log(item[keylist[0]])
-                                        let listItem = document.createElement("li");
-                                        listItem.innerText = item[keylist[0]]
-                                        list.appendChild(listItem);
+                                let listItem = document.createElement("li");
+
+                                if (typeof item === "object" && item !== null) {
+                                    let keylist = Object.keys(item);
+                                    if (keylist.length > 0 && typeof item[keylist[0]] === "string") {
+                                        listItem.innerText = item[keylist[0]];
                                     }
+                                } else {
+                                    listItem.innerText = item;
                                 }
-                                else {
-                                    let listItem = document.createElement("li");
-                                    listItem.innerText = typeof item === "object" && item.text ? item.text : item;
-                                    list.appendChild(listItem);
-                                }
+
+                                list.appendChild(listItem);
                             });
                             section.appendChild(list);
                         } else if (typeof value === "object" && value !== null) {
@@ -77,19 +78,45 @@
                                 }
                             }
                         }
+
                         return section;
                     }
-        
-                    for (let key in parsedData) {
-                        if (parsedData.hasOwnProperty(key)) {
-                            container.appendChild(createElementFromKeyValue(key, parsedData[key]));
+
+                    // Extract values properly from the updated JSON format
+                    parsedData.forEach(entry => {
+                        if (entry._id_ && entry._text_) {
+                            let key = entry._id_;
+                            let value = entry._text_;
+
+                            // Capture the archetype name
+                            if (key === "archetype") {
+                                archetype = value.toLowerCase().replace(/\s+/g, '_'); // Format to match filename
+                            }
+
+                            container.appendChild(createElementFromKeyValue(key, value));
                         }
+                    });
+
+                    // Insert the image if an archetype is found
+                    if (archetype) {
+                        let imgContainer = document.createElement("div");
+                        imgContainer.classList.add("archetype-image");
+
+                        let img = document.createElement("img");
+                        img.src = `../static/assets/${archetype}.webp`; // Assumes images are stored in /images/ with .jpg format
+                        img.alt = `Image of ${archetype}`;
+                        imgContainer.appendChild(img);
+
+                        // Insert image before all sections
+                        container.prepend(imgContainer);
                     }
+
                 } catch (error) {
                     console.error("Parsing error:", error);
                     document.body.innerHTML = "<p>Error parsing JSON data.</p>";
                 }
             });
+
         </script>
         
     </body>
