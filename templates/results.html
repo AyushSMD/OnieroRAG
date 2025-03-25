@@ -9,62 +9,89 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Rowdies:wght@300;400;700&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Oxygen:wght@300;400;700&display=swap" rel="stylesheet">
+        <link rel='icon' href='favicon.ico' type='image/x-icon'/>
     </head>
     <body>
-        <h1 class="heading">Dream Results</h1>
-        <div class="container" id="contentContainer"></div>
-
+        <h1 class="heading mainTitle">Dream Results</h1>
+        <div class="container-t" id="contentContainer"></div>
+        <div class="btmgap"></div>
+        <div class="footer-r">
+            <p class="ftr">Made after a lot of criticism from Dhrubajyoti Mandal</p>
+        </div>
         <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            let jsonData = localStorage.getItem("dreamResult");
-            console.log("Raw Data:", jsonData);
-
-            if (jsonData) {
+            let t = 1;
+            document.addEventListener("DOMContentLoaded", function() {
+                let jsonData = localStorage.getItem("dreamResult");
+                console.log("Raw Data:", jsonData);
+        
+                if (!jsonData) {
+                    document.body.innerHTML = "<p>No data available.</p>";
+                    return;
+                }
+        
                 try {
                     let parsedData = JSON.parse(jsonData);
                     console.log("Parsed Data:", parsedData);
                     let container = document.getElementById("contentContainer");
                     container.innerHTML = "";
-
-                    function createElementFromKeyValue(key, value) {
+        
+                    function createElementFromKeyValue(key, value, level = 2) {
                         let section = document.createElement("div");
                         section.classList.add("section");
-                        let heading = document.createElement("h2");
+        
+                        let heading = document.createElement(`h${level}`);
                         heading.innerText = key.replace(/_/g, ' ');
                         section.appendChild(heading);
-                        
+        
                         if (typeof value === "string" || typeof value === "number") {
                             let paragraph = document.createElement("p");
                             paragraph.innerText = value;
                             section.appendChild(paragraph);
+                            if (t===1){
+                                paragraph.classList.add('archtype-heading')
+                                t = 0
+                            }
                         } else if (Array.isArray(value)) {
                             let list = document.createElement("ul");
                             value.forEach(item => {
-                                let listItem = document.createElement("li");
-                                listItem.innerText = typeof item === "object" ? JSON.stringify(item, null, 2) : item;
-                                list.appendChild(listItem);
+                                if (typeof item === "object" && typeof Object.values(item)==="object") {
+                                    if (Object.keys(item)!=='number'){
+                                        let keylist = Object.keys(item)
+                                        console.log(item[keylist[0]])
+                                        let listItem = document.createElement("li");
+                                        listItem.innerText = item[keylist[0]]
+                                        list.appendChild(listItem);
+                                    }
+                                }
+                                else {
+                                    let listItem = document.createElement("li");
+                                    listItem.innerText = typeof item === "object" && item.text ? item.text : item;
+                                    list.appendChild(listItem);
+                                }
                             });
                             section.appendChild(list);
                         } else if (typeof value === "object" && value !== null) {
-                            Object.entries(value).forEach(([subKey, subValue]) => {
-                                section.appendChild(createElementFromKeyValue(subKey, subValue));
-                            });
+                            for (let subKey in value) {
+                                if (value.hasOwnProperty(subKey)) {
+                                    section.appendChild(createElementFromKeyValue(subKey, value[subKey], Math.min(level + 1, 4)));
+                                }
+                            }
                         }
                         return section;
                     }
-
-                    Object.entries(parsedData).forEach(([key, value]) => {
-                        container.appendChild(createElementFromKeyValue(key, value));
-                    });
+        
+                    for (let key in parsedData) {
+                        if (parsedData.hasOwnProperty(key)) {
+                            container.appendChild(createElementFromKeyValue(key, parsedData[key]));
+                        }
+                    }
                 } catch (error) {
                     console.error("Parsing error:", error);
                     document.body.innerHTML = "<p>Error parsing JSON data.</p>";
                 }
-            } else {
-                document.body.innerHTML = "<p>No data available.</p>";
-            }
-        });
+            });
         </script>
+        
     </body>
 </html>
     
