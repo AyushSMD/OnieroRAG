@@ -2,11 +2,26 @@ import json
 import time
 from flask import Flask, render_template, request, Response
 from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
 from scripts import the_big_dipper
 
 app = Flask(__name__)
 CORS(app)
 
+# Configure the SQLite Database
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///queries.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+db = SQLAlchemy(app)
+
+# Database Model for Logging Queries and Responses
+class QueryLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    dream_text = db.Column(db.Text, nullable=False)
+    response_data = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
+
+    def __repr__(self):
+        return f"<QueryLog {self.id}>"
 
 def json_listify(data: dict) -> dict:
     spam = []
@@ -33,6 +48,7 @@ def llm_():
         dream_text = request.form["dream"]
 
     data = the_big_dipper.main(dream_text=dream_text)
+    json_response=json_listify(data)
 
     # time.sleep(2)
     # data = {
@@ -60,10 +76,17 @@ def llm_():
     #     },
     # }
 
-    response = Response(json_listify(data), mimetype="application/json")
+        # Log query & response to database
+    new_entry = QueryLog(dream_text=dream_text, response_data=json_response)
+    db.session.add(new_entry)
+    db.session.commit()
+
+    response = Response(json_response, mimetype="application/json")
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
 
 
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
     app.run(host='0.0.0.0', port=8000, debug=True)

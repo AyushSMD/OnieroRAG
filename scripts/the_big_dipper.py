@@ -140,7 +140,7 @@ def main(dream_text: str) -> dict:
         Give your answer in a json.
         """
     )
-
+    
     chain = prompt | llm
     descriptive_content = chain.invoke(
         {
@@ -160,8 +160,9 @@ def main(dream_text: str) -> dict:
     except (json.decoder.JSONDecodeError, IndexError) as e:
         print("[DECODE ERROR]", e)
         del dream
-        return {"archetype": "DECODE_ERROR"}
-    
+        # return {"archetype": "DECODE_ERROR"}
+        return e
+
     data["descriptive_content"] = descriptive_content
     del dream
 

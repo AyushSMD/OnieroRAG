@@ -3,16 +3,18 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Dream Results</title>
+        <title>Oniero RAG Results</title>
+        <link rel="icon" href="../static/assets/favicon.svg" sizes="any" type="image/svg+xml">
         <link rel="stylesheet" href="../static/css/style.css"/>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Rowdies:wght@300;400;700&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Oxygen:wght@300;400;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Oxygen:wght@300;400;700&display=swap"  rel="stylesheet">
         <link rel='icon' href='favicon.ico' type='image/x-icon'/>
     </head>
     <body>
-        <h1 class="heading mainTitle">Dream Results</h1>
+        <h1 class="heading mainTitle rel">Dream Results</h1>
         <div class="container-t" id="contentContainer"></div>
         <div class="btmgap"></div>
         <div class="footer-r">
@@ -74,7 +76,7 @@
                         } else if (typeof value === "object" && value !== null) {
                             for (let subKey in value) {
                                 if (value.hasOwnProperty(subKey)) {
-                                    section.appendChild(createElementFromKeyValue(subKey, value[subKey], Math.min(level + 1, 4)));
+                                    section.appendChild(createElementFromKeyValue(subKey, value[subKey], Math.min(level + 1, 5 )));
                                 }
                             }
                         }

@@ -13,7 +13,7 @@ h1 {
     margin-bottom: 2rem;
 }
 
-h2,h3,h4,p,.w,ul {
+h2,h3,h4,h5,p,.w,ul {
     color: aliceblue;
     font-family: 'oxygen',sans-serif;
 }
@@ -46,7 +46,7 @@ h2,h3,h4,p,.w,ul {
 
 li{
     /* list-style: none; */
-    margin-left: 75px;
+    margin-left: 55px;
     font-weight: 300;
     margin-bottom: 10px;
     font-size: 0.86rem;
@@ -57,7 +57,7 @@ li::first-letter {
     text-transform: uppercase;
 }
 
-h2, h3, h4 {
+h2, h3, h4, h5{
     font-weight: 400;
     text-transform: capitalize;
     margin-bottom: 10px;
@@ -75,6 +75,14 @@ h4{
     margin-left: 20px;
 }
 
+h5{
+    margin-left: 40px;
+    font-size: 0.90rem;
+}
+
+h5::after{
+    content: " :";
+}
 
 p{
     font-weight: 300;
@@ -160,14 +168,23 @@ body {
     overflow-x: hidden;
 }
 
+.titleBox{
+    position: relative;
+    align-items: center;
+}
+
 .mainTitle {
-    text-align: center;
+    width: 100%;
+    position: absolute;
     font-size: 3rem;
     color: aliceblue;
     font-family: 'Rowdies', sans-serif;
     font-weight: 700;
     margin-bottom: 2rem;
     transition: transform 0.8s ease-in-out, top 0.8s ease-in-out, font-size 0.5s ease-in-out;
+}
+
+.rel {
     position: relative;
 }
 
@@ -237,9 +254,9 @@ body {
     position: absolute;
     right: 20px;
     bottom: 10px;
-    background-color: #00d4ff;
+    background-color: #23889c;
     border: none;
-    padding: 5px 12px;
+    padding: 0px 10px;
     border-radius: 5px;
     cursor: pointer;
     color: white;
@@ -252,7 +269,7 @@ body {
 }
 
 .textarea-wrapper .send-button:hover {
-    background-color: #0094cc;
+    background-color: #1c5b72;
 }
 
 .textarea-wrapper .send-button:focus  {
@@ -268,9 +285,44 @@ textarea::placeholder {
 }
 
 .send-icon {
-    height: 24px;
-    width: 18px;
+    height: 30px;
+    width: 22px;
+    margin-left: 1px;
 }
+
+@keyframes upAndDown {
+    0%, 100% {
+        transform: translate(-50%,0);
+    }
+    50% {
+        transform: translate(-50%,-10%);
+    }
+}
+
+
+#response {
+    text-align: center;
+    position: absolute;
+    top: 65%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin: 0;
+    font-size: 1.3rem;
+    font-weight: 400;
+    color: #e62525;
+    background-color: rgba(255, 95, 95, 0.1);
+    border-radius: 5px;
+    padding: 3px 15px;
+    animation: upAndDown 0.1s ease-in-out infinite;
+}
+
+#response:empty{
+    display: none;
+}
+
+/* #response::after{
+    content: " KYS 8===D";
+}  */
 
 .footer {
     position: fixed;
@@ -303,15 +355,35 @@ textarea::placeholder {
 
 .gen {
     opacity: 0;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
+    position: relative;
 }
 
 .gen.loading {
     opacity: 100;
     transition: opacity 4s ease-in-out;
+}
+
+.letter {
+    opacity: 0.35;
+    transition: opacity 0.3s ;
+}
+
+.letter2 {
+    opacity: 1;
+    transition: opacity 0.3s;
+}
+
+.highlight {
+    opacity: 1 !important;
+}
+
+.fade {
+    opacity: 0 !important;
+}
+
+.letter2 {
+    opacity: 1;
+    transition: opacity 0.3s;
 }
 
 .mainTitle {
@@ -345,11 +417,11 @@ textarea::placeholder {
   to { opacity: 1; transform: translateY(0); }
 }
 
-.mainTitle.loading {
+/* .mainTitle.loading {
     animation: violentRotate 0.1s infinite linear;
-    opacity: 0; /* Keep it visible */
-    transform: none; /* Reset scaling */
-}
+    opacity: 0; 
+    transform: none; 
+} */
 
 @keyframes rotateTitle {
     from {
@@ -366,8 +438,8 @@ textarea::placeholder {
 }
 
 @keyframes moveUpDown {
-    0%, 100% { transform: translateY(0); }  /* Start & End at original position */
-    50% { transform: translateY(-200px); }  /* Move up by 100px */
+    0%, 100% { transform: translateY(0); }  
+    50% { transform: translateY(-200px); }  
 }
 
 .textarea-wrapper.moving {
@@ -383,6 +455,10 @@ textarea::placeholder {
         margin-left: 20px;
     }
 
+    h5{
+        margin-left: 30px;
+    }
+    
     p{
         margin-left: 30px;
     }
@@ -397,5 +473,24 @@ textarea::placeholder {
 
     .container-t{
         padding: 20px;
+    }
+}
+
+@media only screen and ((max-width: 250px) or (max-height : 160px)) {
+
+    body{
+        background-color: #ff0000;
+    }
+
+    .mainTitle{
+        font-family: 'Creepster', 'Rowdies';
+    }
+
+    .mainTitle::after{
+        content: "\a\aYour aspect ratio is retard";
+    }
+
+    .textarea-wrapper, .footer, .container-t, .footer-r{
+        display: none;
     }
 }

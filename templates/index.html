@@ -3,142 +3,39 @@
     <head>
         <meta charset="UTF-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <title>Dream Sim</title>
+        <title>Onerio RAG</title>
+        <link rel="icon" href="../static/assets/favicon.svg" sizes="any" type="image/svg+xml">
         <link rel="stylesheet" href="../static/css/style.css"/>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Rowdies:wght@300;400;700&display=swap" rel="stylesheet">
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Oxygen:wght@300;400;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Oxygen:wght@300;400;700&display=swap"  rel="stylesheet">
     </head>
     <body>
         <main>
-            <div class="background">
-                <div class="centerBox">
-                    <div class="cbitem"></div>
-                    <div class="cbitem">
-                        <h1 class="mainTitle">Dream Sim</h1>
-                        <h1 class="gen">Generating</h1>
-                        <form id="dreamForm">
-                            <div class="textarea-wrapper">
-                                <textarea id="dream" name="dream" placeholder="Enter your Dream here..." rows="1" cols="70"></textarea>
-                                <button type="submit" class="send-button"><img src="../static/assets/sendButton.png" alt="Send" class="send-icon"></button>
-                            </div>
-                        </form>
+            <div class="centerBox">
+                <div class="cbitem"></div>
+                <div class="cbitem">
+                    <div class="titleBox">
+                        <h1 class="mainTitle" id="projectName">Oniero RAG</h1>
+                        <h1 class="gen" id="genLoad">Generating</h1>
                     </div>
-                    <div class="cbitem"></div>
-                    <p id="response"></p>
-                    <div class="footer">
-                        <p class="ftr">Made after a lot of criticism from Dhrubajyoti Mandal</p>
-                    </div>
+                    <form id="dreamForm">
+                        <div class="textarea-wrapper">
+                            <textarea id="dream" name="dream" placeholder="Enter your Dream here..." rows="1" cols="70"></textarea>
+                            <button type="submit" class="send-button"><img src="../static/assets/sendButton.svg" alt="Send" class="send-icon"></button>
+                        </div>
+                    </form>
+                </div>
+                <div class="cbitem"></div>
+                <p id="response"></p>
+                <div class="footer">
+                    <p class="ftr">Made after a lot of criticism from Dhrubajyoti Mandal</p>
                 </div>
             </div>
         </main>
-        <!--<script src="../static/main.js">-->
-        <script>
-            document.addEventListener("DOMContentLoaded", function () {
-                const textarea = document.getElementById("dream");
-                const form = document.getElementById("dreamForm");
-
-                textarea.addEventListener("keydown", function (event) {
-                    if (event.key === "Enter") {
-                        if (event.shiftKey) {
-                            // Shift+Enter: Insert a new line
-                            event.preventDefault();
-                            const cursorPos = textarea.selectionStart;
-                            textarea.value = textarea.value.substring(0, cursorPos) + "\n" + textarea.value.substring(cursorPos);
-                            textarea.selectionStart = textarea.selectionEnd = cursorPos + 1; // Move cursor after the new line
-                        } else {
-                            // Enter: Submit form
-                            event.preventDefault();
-                            form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-                        }
-                    }
-                });
-            });
-
-            document.querySelector(".send-button").addEventListener("click", () => {
-                const title = document.querySelector(".mainTitle");
-                if (title) {
-                    title.classList.add("rotating"); // Add the rotation class
-                }
-            });
-            
-            document.querySelector(".send-button").addEventListener("click", () => {
-                const wrapper = document.querySelector(".textarea-wrapper");
-
-                if (wrapper) {
-                    wrapper.classList.remove("moving"); // Reset animation
-                    void wrapper.offsetWidth; // Force reflow to restart animation
-                    wrapper.classList.add("moving"); // Apply animation
-                }
-            });
-
-            document.addEventListener("DOMContentLoaded", function () {
-                const textarea = document.getElementById("dream");
-              
-                if (textarea) {
-                    textarea.style.overflow = "hidden"; // Prevent scrollbar
-                    textarea.style.height = "auto"; // Reset height initially
-                    textarea.style.height = textarea.scrollHeight + "px"; // Set height dynamically
-              
-                    textarea.addEventListener("input", function () {
-                        this.style.height = "auto"; // Reset height
-                        this.style.height = this.scrollHeight + "px"; // Set new height
-                    });
-                }
-              });
-              
-              
-              document.addEventListener("DOMContentLoaded", function() {
-                document.getElementById("dreamForm").addEventListener("submit", async function(event) {
-                    event.preventDefault(); 
-              
-                    let dreamInput = document.getElementById("dream");
-                    let responseDiv = document.getElementById("response");
-              
-                    if (!dreamInput) {
-                        console.error("Error: Input field with id 'dream' not found.");
-                        responseDiv.innerText = "Error: Input field missing.";
-                        return;
-                    }
-              
-                    let formData = new FormData();
-                    formData.append("dream", dreamInput.value);
-              
-                    try {
-                        console.log(window.location.hostname)
-                        let baseURL = window.location.hostname === "127.0.0.1"
-                            ? "http://localhost:8000" 
-                            : window.location.origin;
-
-                        let response = await fetch(`${baseURL}/llm`, {
-                            method: "POST",
-                            body: formData
-                        });
-                        console.log("data sent")
-              
-                        if (!response.ok) {
-                            throw new Error(`Server error: ${response.status} ${response.statusText}`);
-                        }
-              
-                        let jsonResponse = await response.json(); // Parse JSON response
-                        
-                        // Save JSON response in localStorage
-                        localStorage.setItem("dreamResult", JSON.stringify(jsonResponse));
-              
-                        console.log("Response saved:", jsonResponse);
-                        
-                        // Redirect to results page
-                        window.location.href = "./results.html";
-                    } catch (error) {
-                        responseDiv.innerText = "Error: " + error.message;
-                        console.error("Fetch error:", error);
-                    }
-                });
-              });
-              
-              </script>
+        <script src="../static/main.js"></script>
+        <script src="../static/animations.js"></script>
     </body>
 </html>
