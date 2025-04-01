@@ -34,15 +34,14 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     form.addEventListener("submit", async function (event) {
-        event.preventDefault(); //  Prevent default submission
+        event.preventDefault();
         
         let dreamInput = document.getElementById("dream");
-        if (!dreamInput) {
-            console.error("Error: Input field with id 'dream' not found.");
-            responseDiv.innerText = "Error: Input field missing.";
+        if (!dreamInput || !dreamInput.value.trim()) {  // Check for empty input
+            responseDiv.innerText = "Please enter a dream to analyze.";
             return;
         }
-
+        
         // Show generating indicator
         const genLoad = document.getElementById("genLoad");
         genLoad.style.display = "block";
@@ -206,20 +205,38 @@ document.addEventListener("DOMContentLoaded", function () {
     // Function to fetch history for a selected date
     async function fetchHistoryForDate(dateString) {
         try {
-            historyDateHeader.textContent = new Date(dateString).toLocaleDateString();
+            // Make sure we display the date correctly regardless of format issues
+            const displayDate = new Date(dateString);
+            if (isNaN(displayDate.getTime())) {
+                historyDateHeader.textContent = "Invalid Date";
+                historyList.innerHTML = "<li class='history-error'>Invalid date format</li>";
+                return;
+            }
+            
+            historyDateHeader.textContent = displayDate.toLocaleDateString();
+            
+            // Add loading state
+            historyList.innerHTML = "<li class='loading'>Loading history...</li>";
             
             let baseURL = window.location.hostname === "127.0.0.1"
                 ? "http://localhost:8000"
                 : window.location.origin;
                 
-            const response = await fetch(`${baseURL}/history/${encodeURIComponent(dateString)}`);
+            // Make sure we encode the date properly for the URL
+            const encodedDate = encodeURIComponent(dateString);
+            const response = await fetch(`${baseURL}/history/${encodedDate}`);
             
             if (!response.ok) {
                 throw new Error(`Server error: ${response.status}`);
             }
             
             const historyItems = await response.json();
-            displayHistoryItems(historyItems);
+            
+            if (response.headers.get('content-type').includes('application/json')) {
+                displayHistoryItems(historyItems);
+            } else {
+                throw new Error('Invalid response format');
+            }
         } catch (error) {
             console.error("Error fetching history:", error);
             historyList.innerHTML = `<li class="history-error">Error loading history: ${error.message}</li>`;

@@ -1,11 +1,17 @@
 import json
+import os
 import time
-from datetime import datetime
+import pytz
+import numpy as np
+import pandas as pd
+from dotenv import load_dotenv
+from datetime import datetime, timedelta
 from flask import Flask, render_template, request, Response, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from scripts import the_big_dipper
 
+load_dotenv()
 app = Flask(__name__)
 CORS(app)
 
@@ -13,81 +19,77 @@ CORS(app)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///queries.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
+IST = pytz.timezone("Asia/Kolkata")
 
-# Database Model for Logging Queries and Responses
+# Database Model for Logging Queries, Responses, and Chart Data
 class QueryLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     dream_text = db.Column(db.Text, nullable=False)
     response_data = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, default=db.func.current_timestamp())
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(pytz.utc).astimezone(IST))
 
-    def __repr__(self):
-        return f"<QueryLog {self.id}>"
+class ChartData(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    chart_type = db.Column(db.String(50), nullable=False)
+    data = db.Column(db.Text, nullable=False)
+    timestamp = db.Column(db.DateTime, default=lambda: datetime.now(pytz.utc).astimezone(IST))
 
-def json_listify(data: dict) -> dict:
-    spam = []
-    for key in data:
-        d = {}
-        d["_id_"] = key
-        d["_text_"] = data[key]
-        spam.append(d)
-    return json.dumps(spam)
+# JSON Encoder for NumPy Types
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(NumpyEncoder, self).default(obj)
 
+app.json_encoder = NumpyEncoder
+
+def json_listify(data: dict) -> str:
+    return json.dumps([{"_id_": key, "_text_": value} for key, value in data.items()])
 
 @app.route("/", methods=["GET"])
 def home():
     return render_template("index.html")
 
-# curl -X POST http://localhost:8000/llm -F dream="haha yes"
 @app.route("/llm", methods=["POST"])
 def llm_():
-    if request.method == "POST":
-        dream_text = request.form["dream"]
-
+    if "dream" not in request.form or not request.form["dream"].strip():
+        return jsonify({"error": "Dream text is required"}), 400
+    
+    dream_text = request.form["dream"].strip()
     data = the_big_dipper.main(dream_text=dream_text)
     json_response = json_listify(data)
 
-    # Log query & response to database
     new_entry = QueryLog(dream_text=dream_text, response_data=json_response)
     db.session.add(new_entry)
     db.session.commit()
+    
+    return Response(json_response, mimetype="application/json")
 
-    response = Response(json_response, mimetype="application/json")
-    response.headers.add("Access-Control-Allow-Origin", "*")
-    return response
-
-# New endpoint to get chat history for a specific date
 @app.route("/history/<date>", methods=["GET"])
 def get_history_by_date(date):
     try:
-        # Parse the date string into a datetime object
-        date_obj = datetime.strptime(date, '%a %b %d %Y')
+        for format_string in ["%a %b %d %Y", "%Y-%m-%d", "%m/%d/%Y"]:
+            try:
+                date_obj = datetime.strptime(date, format_string).replace(tzinfo=IST)
+                break
+            except ValueError:
+                continue
+        else:
+            return jsonify({"error": "Invalid date format"}), 400
         
-        # Query for all entries on this date
-        start_of_day = datetime(date_obj.year, date_obj.month, date_obj.day, 0, 0, 0)
-        end_of_day = datetime(date_obj.year, date_obj.month, date_obj.day, 23, 59, 59)
+        start_of_day = IST.localize(datetime(date_obj.year, date_obj.month, date_obj.day, 0, 0, 0))
+        end_of_day = IST.localize(datetime(date_obj.year, date_obj.month, date_obj.day, 23, 59, 59))
         
-        queries = QueryLog.query.filter(
-            QueryLog.timestamp >= start_of_day,
-            QueryLog.timestamp <= end_of_day
-        ).all()
+        queries = QueryLog.query.filter(QueryLog.timestamp >= start_of_day, QueryLog.timestamp <= end_of_day).order_by(QueryLog.timestamp.desc()).all()
         
-        # Create a summary list with id and preview of each query
-        history_items = []
-        for query in queries:
-            # Get the first 30 characters of the dream text as preview
-            preview = query.dream_text[:30] + "..." if len(query.dream_text) > 30 else query.dream_text
-            history_items.append({
-                "id": query.id,
-                "preview": preview,
-                "timestamp": query.timestamp.strftime("%H:%M")
-            })
-        
-        return jsonify(history_items)
+        return jsonify([{ "id": q.id, "preview": q.dream_text[:30] + "...", "timestamp": q.timestamp.strftime("%H:%M") } for q in queries])
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
-# New endpoint to get a specific query by ID
 @app.route("/query/<int:query_id>", methods=["GET"])
 def get_query_by_id(query_id):
     query = QueryLog.query.get_or_404(query_id)
@@ -97,6 +99,40 @@ def get_query_by_id(query_id):
         "response_data": json.loads(query.response_data),
         "timestamp": query.timestamp.strftime("%Y-%m-%d %H:%M:%S")
     })
+
+# Chart Data Storage and Retrieval
+@app.route('/get_bar_data')
+def get_bar_data():
+    df = pd.read_csv("static/assets/facebook_dream_archetypes.csv")
+    counts = df['archetype'].value_counts()
+    data = json.dumps({ 'labels': counts.index.tolist(), 'values': counts.values.tolist() })
+    new_entry = ChartData(chart_type="bar", data=data)
+    db.session.add(new_entry)
+    db.session.commit()
+    return jsonify(json.loads(data))
+
+@app.route('/get_time_series_data')
+def get_time_series_data():
+    archetypes = ['explorer', 'everyman', 'hero', 'outlaw', 'sage']
+    end_date = datetime.now()
+    dates = [(end_date - timedelta(days=i*30)).strftime('%Y-%m') for i in range(6)][::-1]
+    
+    data = [{
+        'archetype': archetype,
+        'values': [max(1, np.random.randint(5, 15) + np.random.choice([-1, 0, 1]) * i + np.random.randint(-3, 4)) for i in range(len(dates))]
+    } for archetype in archetypes]
+    
+    json_data = json.dumps({'dates': dates, 'data': data})
+    new_entry = ChartData(chart_type="time_series", data=json_data)
+    db.session.add(new_entry)
+    db.session.commit()
+    
+    return jsonify(json.loads(json_data))
+
+@app.route("/get_chart_history", methods=["GET"])
+def get_chart_history():
+    charts = ChartData.query.order_by(ChartData.timestamp.desc()).all()
+    return jsonify([{ "id": c.id, "chart_type": c.chart_type, "timestamp": c.timestamp.strftime("%Y-%m-%d %H:%M:%S") } for c in charts])
 
 if __name__ == "__main__":
     with app.app_context():

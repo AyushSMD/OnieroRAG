@@ -13,6 +13,27 @@
     --off-white: rgb(200, 200, 200);
   }
 
+::-webkit-scrollbar {
+    width: 8px;
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--accent-2);
+    border-radius: 5px;
+}
+
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--smd-grey-4);
+    border-radius: 5px;
+    margin: 23px 0px 58px 0px;
+}
+
 .in {
     display: grid;
     grid-template-columns: ;
