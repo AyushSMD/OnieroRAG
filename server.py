@@ -37,9 +37,9 @@ def json_listify(data: dict) -> dict:
 def home():
     return render_template("index.html")
 
-@app.route('/results.html')
-def results():
-    return render_template('results.html')
+# @app.route('/results.html')
+# def results():
+#     return render_template('results.html')
 
 # curl -X POST http://localhost:8000/llm -F dream="haha yes"
 @app.route("/llm", methods=["POST"])

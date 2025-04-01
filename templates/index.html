@@ -13,10 +13,42 @@
         <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Oxygen:wght@300;400;700&display=swap"  rel="stylesheet">
     </head>
     <body>
-        <main>
+        <nav id="navbar" class="navbar">
+            <h3 class="history">Chat History</h3>
+            <div class="wrapper">
+                <div class="container">
+                  <div class="calendar">
+                    <header>
+                      <pre class="left">◀</pre>
+                      
+                      <div class="header-display">
+                        <p class="display">""</p>
+                      </div>
+                
+                      <pre class="right">▶</pre>
+                
+                    </header>
+                
+                    <div class="week">
+                      <div>S</div>
+                      <div>M</div>
+                      <div>T</div>
+                      <div>W</div>
+                      <div>T</div>
+                      <div>F</div>
+                      <div>S</div>
+                    </div>
+                  <div class="days"></div>
+                </div>
+                <!-- <div class="display-selected">
+                  <p class="selected"></p>
+                </div> -->
+            </div>
+        </nav>
+        <main class="in">
             <div class="centerBox">
                 <div class="cbitem"></div>
-                <div class="cbitem">
+                <div class="cbitem tbAndTa">
                     <div class="titleBox">
                         <h1 class="mainTitle" id="projectName">Oniero RAG</h1>
                         <h1 class="gen" id="genLoad">Generating</h1>
@@ -28,14 +60,18 @@
                         </div>
                     </form>
                 </div>
-                <div class="cbitem"></div>
-                <p id="response"></p>
+                <div class="cbitem ">
+                    <div class="container-t" id="contentContainer"></div>
+                </div>
+                <!-- <p id="response"></p> -->
                 <div class="footer">
                     <p class="ftr">Made after a lot of criticism from Dhrubajyoti Mandal</p>
                 </div>
+                
             </div>
+            <div class="darken"></div>
         </main>
         <script src="../static/main.js"></script>
-        <script src="../static/animations.js"></script>
+        <!-- <script src="../static/animations.js"></script> -->
     </body>
 </html>
