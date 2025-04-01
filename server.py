@@ -1,6 +1,7 @@
 import json
 import time
-from flask import Flask, render_template, request, Response
+from datetime import datetime
+from flask import Flask, render_template, request, Response, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from scripts import the_big_dipper
@@ -37,10 +38,6 @@ def json_listify(data: dict) -> dict:
 def home():
     return render_template("index.html")
 
-# @app.route('/results.html')
-# def results():
-#     return render_template('results.html')
-
 # curl -X POST http://localhost:8000/llm -F dream="haha yes"
 @app.route("/llm", methods=["POST"])
 def llm_():
@@ -48,35 +45,9 @@ def llm_():
         dream_text = request.form["dream"]
 
     data = the_big_dipper.main(dream_text=dream_text)
-    json_response=json_listify(data)
+    json_response = json_listify(data)
 
-    # time.sleep(2)
-    # data = {
-    #     "archetype": "caregiver",
-    #     "descriptive_content": {
-    #         "zzz": {"Content": "lmao what a jerk"},
-    #         "dream": {
-    #             "description": "I was my mother",
-    #             "archetype": "The Caregiver",
-    #         },
-    #         "interpretation": {
-    #             "context": "The assumption that what I think is also my partner's thought.",
-    #             "compensation": "Our dreams are about compensation, which means they explain what we lack in the real world. In this case, the dream may be compensating for feelings of inadequacy or a lack of nurturing in your relationship with your partner.",
-    #         },
-    #         "analysis": {
-    #             "insights": [
-    #                 "The dream may be revealing an unconscious desire to take on a more caregiving role in your relationship.",
-    #                 "It could also suggest that you're feeling overwhelmed or burdened by the responsibilities of being in a relationship, and your unconscious is trying to compensate by taking on a more nurturing role.",
-    #             ],
-    #             "questions": [
-    #                 "What are my feelings about being in a relationship? Am I feeling overwhelmed or unfulfilled?",
-    #                 "How do I feel about taking care of others? Is this something that comes naturally to me?",
-    #             ],
-    #         },
-    #     },
-    # }
-
-        # Log query & response to database
+    # Log query & response to database
     new_entry = QueryLog(dream_text=dream_text, response_data=json_response)
     db.session.add(new_entry)
     db.session.commit()
@@ -85,6 +56,47 @@ def llm_():
     response.headers.add("Access-Control-Allow-Origin", "*")
     return response
 
+# New endpoint to get chat history for a specific date
+@app.route("/history/<date>", methods=["GET"])
+def get_history_by_date(date):
+    try:
+        # Parse the date string into a datetime object
+        date_obj = datetime.strptime(date, '%a %b %d %Y')
+        
+        # Query for all entries on this date
+        start_of_day = datetime(date_obj.year, date_obj.month, date_obj.day, 0, 0, 0)
+        end_of_day = datetime(date_obj.year, date_obj.month, date_obj.day, 23, 59, 59)
+        
+        queries = QueryLog.query.filter(
+            QueryLog.timestamp >= start_of_day,
+            QueryLog.timestamp <= end_of_day
+        ).all()
+        
+        # Create a summary list with id and preview of each query
+        history_items = []
+        for query in queries:
+            # Get the first 30 characters of the dream text as preview
+            preview = query.dream_text[:30] + "..." if len(query.dream_text) > 30 else query.dream_text
+            history_items.append({
+                "id": query.id,
+                "preview": preview,
+                "timestamp": query.timestamp.strftime("%H:%M")
+            })
+        
+        return jsonify(history_items)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+# New endpoint to get a specific query by ID
+@app.route("/query/<int:query_id>", methods=["GET"])
+def get_query_by_id(query_id):
+    query = QueryLog.query.get_or_404(query_id)
+    return jsonify({
+        "id": query.id,
+        "dream_text": query.dream_text,
+        "response_data": json.loads(query.response_data),
+        "timestamp": query.timestamp.strftime("%Y-%m-%d %H:%M:%S")
+    })
 
 if __name__ == "__main__":
     with app.app_context():

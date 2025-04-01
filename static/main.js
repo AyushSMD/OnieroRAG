@@ -4,6 +4,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const responseDiv = document.getElementById("response");
     const container = document.getElementById("contentContainer");
     const submitButton = document.getElementById("submitButton");
+    const historyList = document.getElementById("history-list");
+    const historyDateHeader = document.getElementById("history-date");
+    
+    // Keep track of selected date
+    let selectedDate = null;
 
     textarea.addEventListener("keydown", function (event) {
         if (event.key === "Enter") {
@@ -38,6 +43,10 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        // Show generating indicator
+        const genLoad = document.getElementById("genLoad");
+        genLoad.style.display = "block";
+        
         let formData = new FormData();
         formData.append("dream", dreamInput.value);
 
@@ -67,14 +76,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
             try {
                 displayResults(jsonResponse); //  Safe execution
-                console.log("this section runs")
                 submitButton.blur();
+                dreamInput.value = ""; // Clear input after submission
+                
+                // If today is selected in the calendar, refresh history
+                const today = new Date().toDateString();
+                if (selectedDate === today) {
+                    fetchHistoryForDate(selectedDate);
+                }
             } catch (error) {
                 console.error("Error displaying results:", error);
             }
         } catch (error) {
             responseDiv.innerText = "Error: " + error.message;
             console.error("Fetch error:", error);
+        } finally {
+            // Hide generating indicator
+            genLoad.style.display = "none";
         }
     });
 
@@ -83,7 +101,6 @@ document.addEventListener("DOMContentLoaded", function () {
     let days = document.querySelector(".days");
     let previous = document.querySelector(".left");
     let next = document.querySelector(".right");
-    let selected = document.querySelector(".selected");
 
     let date = new Date();
 
@@ -143,7 +160,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         date.setMonth(month);
         displayCalendar();
-        displaySelected();
+        addDateClickListeners();
     });
 
     next.addEventListener("click", () => {
@@ -156,30 +173,117 @@ document.addEventListener("DOMContentLoaded", function () {
 
         date.setMonth(month);
         displayCalendar();
-        displaySelected();
+        addDateClickListeners();
     });
 
-    function displaySelected() {
-        const dayElements = document.querySelectorAll(".days div");
+    // Function to add click listeners to date elements
+    function addDateClickListeners() {
+        const dayElements = document.querySelectorAll(".days .date-box");
         dayElements.forEach((day) => {
             day.addEventListener("click", (e) => {
-                const currentDate = document.getElementById("current-date");
-                if (currentDate) {
-                    currentDate.removeAttribute("id");
-                    currentDate.classList.remove("current-date");
+                // Clear previous selected date
+                const prevSelected = document.querySelector(".current-date");
+                if (prevSelected) {
+                    prevSelected.classList.remove("current-date");
+                    prevSelected.removeAttribute("id");
                 }
 
-                const selectedDate = e.target; // Use actual element, not dataset.date
-                selectedDate.id = "current-date";
-                selectedDate.classList.add("current-date");
-
-                console.log(selectedDate.dataset.date);
+                // Set new selected date
+                const selectedDateElement = e.target;
+                selectedDateElement.classList.add("current-date");
+                selectedDateElement.id = "current-date";
+                
+                // Store selected date and fetch history
+                selectedDate = selectedDateElement.dataset.date;
+                fetchHistoryForDate(selectedDate);
             });
         });
     }
 
-    displaySelected();
+    // Add click listeners initially
+    addDateClickListeners();
 
+    // Function to fetch history for a selected date
+    async function fetchHistoryForDate(dateString) {
+        try {
+            historyDateHeader.textContent = new Date(dateString).toLocaleDateString();
+            
+            let baseURL = window.location.hostname === "127.0.0.1"
+                ? "http://localhost:8000"
+                : window.location.origin;
+                
+            const response = await fetch(`${baseURL}/history/${encodeURIComponent(dateString)}`);
+            
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
+            }
+            
+            const historyItems = await response.json();
+            displayHistoryItems(historyItems);
+        } catch (error) {
+            console.error("Error fetching history:", error);
+            historyList.innerHTML = `<li class="history-error">Error loading history: ${error.message}</li>`;
+        }
+    }
+
+    // Function to display history items in the sidebar
+    function displayHistoryItems(items) {
+        historyList.innerHTML = "";
+        
+        if (items.length === 0) {
+            historyList.innerHTML = "<li class='no-history'>No chat history for this date</li>";
+            return;
+        }
+        
+        items.forEach(item => {
+            const listItem = document.createElement("li");
+            listItem.className = "history-item";
+            listItem.dataset.id = item.id;
+            listItem.innerHTML = `
+                <span class="history-time">${item.timestamp}</span>
+                <span class="history-preview">${item.preview}</span>
+            `;
+            
+            listItem.addEventListener("click", () => fetchQueryById(item.id));
+            historyList.appendChild(listItem);
+        });
+    }
+
+    // Function to fetch a specific query by ID
+    async function fetchQueryById(queryId) {
+        try {
+            let baseURL = window.location.hostname === "127.0.0.1"
+                ? "http://localhost:8000"
+                : window.location.origin;
+                
+            const response = await fetch(`${baseURL}/query/${queryId}`);
+            
+            if (!response.ok) {
+                throw new Error(`Server error: ${response.status}`);
+            }
+            
+            const queryData = await response.json();
+            
+            // Fill the textarea with the dream text
+            textarea.value = queryData.dream_text;
+            textarea.style.height = "auto";
+            textarea.style.height = textarea.scrollHeight + "px";
+            
+            // Display the response data
+            displayResults(queryData.response_data);
+            
+            // Highlight the selected history item
+            const historyItems = document.querySelectorAll(".history-item");
+            historyItems.forEach(item => {
+                item.classList.remove("selected");
+                if (parseInt(item.dataset.id) === queryId) {
+                    item.classList.add("selected");
+                }
+            });
+        } catch (error) {
+            console.error("Error fetching query:", error);
+        }
+    }
 
     function displayResults(parsedData) {
         container.innerHTML = "";
@@ -254,9 +358,17 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    window.addEventListener("beforeunload", function (event) {
-        console.warn("Page is attempting to reload!");
-        event.preventDefault();
-        return false;
-    });
+    // Set initial state - select today's date if available
+    const todayElement = document.getElementById("current-date");
+    if (todayElement) {
+        selectedDate = todayElement.dataset.date;
+        fetchHistoryForDate(selectedDate);
+    }
+
+    // Remove this to allow page reloads
+    // window.addEventListener("beforeunload", function (event) {
+    //     console.warn("Page is attempting to reload!");
+    //     event.preventDefault();
+    //     return false;
+    // });
 });

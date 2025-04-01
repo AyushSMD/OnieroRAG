@@ -40,9 +40,14 @@
                     </div>
                   <div class="days"></div>
                 </div>
-                <!-- <div class="display-selected">
-                  <p class="selected"></p>
-                </div> -->
+            </div>
+            
+            <!-- New section for displaying chat history -->
+            <div class="history-container">
+                <h4 class="history-date" id="history-date">Select a date</h4>
+                <ul id="history-list" class="history-list">
+                    <!-- History items will be populated here -->
+                </ul>
             </div>
         </nav>
         <main class="in">
@@ -56,11 +61,11 @@
                     <form id="dreamForm">
                         <div class="textarea-wrapper">
                             <textarea id="dream" name="dream" placeholder="Enter your Dream here..." rows="1" cols="70"></textarea>
-                            <button type="submit" class="send-button"><img src="../static/assets/sendButton.svg" alt="Send" class="send-icon"></button>
+                            <button type="submit" id="submitButton" class="send-button"><img src="../static/assets/sendButton.svg" alt="Send" class="send-icon"></button>
                         </div>
                     </form>
                 </div>
-                <div class="cbitem ">
+                <div class="cbitem">
                     <div class="container-t" id="contentContainer"></div>
                 </div>
                 <!-- <p id="response"></p> -->
