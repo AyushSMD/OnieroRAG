@@ -74,42 +74,59 @@
                         </div>
                     </div>
                     <div class="container-t" id="contentContainer">
-                        
-                    </div>
-                    <div id="visualization" class="tab-content">
-                        <div class="chart-container">
-                            <div class="chart-row">
-                                <div class="chart-card">
-                                    <div class="chart-title">Archetype Distribution</div>
-                                    <canvas id="barChart"></canvas>
-                                </div>
-                                <div class="chart-card">
-                                    <div class="chart-title">Archetypes in Similar Dreams</div>
-                                    <canvas id="doughnutChart"></canvas>
-                                </div>
-                            </div>
-                            
-                            <div class="chart-row">
-                                <div class="chart-card full-width">
-                                    <div class="chart-title">Archetype Frequency Over Time</div>
-                                    <div class="chart-subtitle">6-Month Trend Analysis</div>
-                                    <canvas id="timeSeriesChart"></canvas>
-                                </div>
-                            </div>
-                            
-                            <div class="chart-row">
-                                <div class="chart-card">
-                                    <div class="chart-title">Dream Rarity Analysis</div>
-                                    <div class="chart-subtitle">How unique is your dream pattern?</div>
-                                    <div class="gauge-container">
-                                        <canvas id="rarityGauge"></canvas>
-                                        <div id="rarityDescription" class="rarity-description">Loading...</div>
+
+                        <div id="interpretation" class="tab-content active">
+                            <div class="archetype-heading invisible"></div>
+                            <div class="response-image invisible"></div>
+                            <div class="response"></div>
+                        </div>
+
+                        <div id="visualization" class="tab-content">
+                            <div class="chart-container">
+                                <div class="chart-row">
+                                    <div class="chart-card">
+                                        <div class="chart-title">Archetype Distribution</div>
+                                        <canvas id="barChart"></canvas>
                                     </div>
+                                    <div class="chart-card">
+                                        <div class="chart-title">Archetypes in Similar Dreams</div>
+                                        <canvas id="doughnutChart"></canvas>
+                                    </div>
+                                </div>
+                                
+                                <div class="chart-row">
+                                    <div class="chart-card full-width">
+                                        <div class="chart-title">Archetype Frequency Over Time</div>
+                                        <div class="chart-subtitle">6-Month Trend Analysis</div>
+                                        <canvas id="timeSeriesChart"></canvas>
+                                    </div>
+                                </div>
+                                
+                                <div class="chart-row">
+                                    <div class="chart-card">
+                                        <div class="chart-title">Dream Rarity Analysis</div>
+                                        <div class="chart-subtitle">How unique is your dream pattern?</div>
+                                        <div class="gauge-container">
+                                            <canvas id="rarityGauge"></canvas>
+                                            <div id="rarityDescription" class="rarity-description">Loading...</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Further Reading Tab Content -->
+                        <div id="resources" class="tab-content">
+                            <div class="resources-container">
+                                <h2 class="resources-title">Jungian Archetypes: Further Reading</h2>
+                                <div class="resources-grid">
+                                    <!-- Content will be generated based on identified archetype -->
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                    
                 <!-- <p id="response"></p> -->
                 <div class="footer">
                     <p class="ftr">Made after a lot of criticism from Dhrubajyoti Mandal</p>

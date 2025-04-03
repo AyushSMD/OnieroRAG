@@ -224,6 +224,54 @@ def get_chart_history():
     charts = ChartData.query.order_by(ChartData.timestamp.desc()).all()
     return jsonify([{ "id": c.id, "chart_type": c.chart_type, "timestamp": c.timestamp.strftime("%Y-%m-%d %H:%M:%S") } for c in charts])
 
+@app.route('/get_resources/<archetype>')
+def get_resources(archetype):
+    """
+    Load resources for a specific archetype from text files.
+    Each archetype should have a JSON file in the resources directory.
+    Falls back to default resources if the file doesn't exist.
+    """
+    try:
+        # Sanitize the archetype name to prevent directory traversal
+        archetype = os.path.basename(archetype.lower())
+        
+        # Path to the archetype's resource file
+        resource_file = os.path.join(RESOURCES_DIR, f"{archetype}.json")
+        
+        # Check if the file exists
+        if os.path.exists(resource_file):
+            with open(resource_file, 'r') as f:
+                resources = json.load(f)
+        else:
+            # Load default resources if archetype-specific file doesn't exist
+            default_file = os.path.join(RESOURCES_DIR, "default.json")
+            with open(default_file, 'r') as f:
+                resources = json.load(f)
+        
+        print("sent reading notes...")
+        return jsonify(resources)
+    
+    except Exception as e:
+        print(f"Error loading resources: {e}")
+        # Return default resources as fallback
+        default_resources = [
+            {
+                "title": "Understanding Jungian Archetypes",
+                "description": "An introduction to Carl Jung's theory of archetypes and their significance in dream interpretation.",
+                "links": [
+                    {"type": "Article", "url": "https://conorneill.com/2018/04/21/understanding-personality-the-12-jungian-archetypes/"},
+                ]
+            },
+            {
+                "title": "Dream Symbolism Dictionary",
+                "description": "Comprehensive guide to common dream symbols and their potential meanings across cultures.",
+                "links": [
+                    {"type": "Reference", "url": "https://www.dreamdictionary.org/"}
+                ]
+            }
+        ]
+        return jsonify(default_resources)
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()

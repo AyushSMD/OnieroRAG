@@ -6,9 +6,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const submitButton = document.getElementById("submitButton");
     const historyList = document.getElementById("history-list");
     const historyDateHeader = document.getElementById("history-date");
+    const interpretation = document.getElementById("interpretation");
     
     // Keep track of selected date
     let selectedDate = null;
+
+    // Setup tabs functionality
+    setupTabs();
 
     textarea.addEventListener("keydown", function (event) {
         if (event.key === "Enter") {
@@ -23,6 +27,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
     });
+    
 
     textarea.style.overflow = "hidden";
     textarea.style.height = "auto";
@@ -293,9 +298,6 @@ document.addEventListener("DOMContentLoaded", function () {
             const historyItems = document.querySelectorAll(".history-item");
             historyItems.forEach(item => {
                 item.classList.remove("selected");
-                console.log(item.dataset);
-                console.log("--------I");
-                console.log(queryId);
                 if (parseInt(item.dataset.id) === queryId) {
                     item.classList.add("selected");
                 }
@@ -307,7 +309,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // display parsed data
     function displayResults(parsedData) {
-        container.innerHTML = "";
+        interpretation.innerHTML = "";
         let archetype = null;
         let t = 1;
 
@@ -363,7 +365,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (key === "archetype") {
                     archetype = value.toLowerCase().replace(/\s+/g, '_');
                 }
-                container.appendChild(createElementFromKeyValue(key, value));
+                interpretation.appendChild(createElementFromKeyValue(key, value));
             }
         });
 
@@ -375,7 +377,7 @@ document.addEventListener("DOMContentLoaded", function () {
             img.src = `../static/assets/${archetype}.webp`;
             img.alt = `Image of ${archetype}`;
             imgContainer.appendChild(img);
-            container.prepend(imgContainer);
+            interpretation.prepend(imgContainer);
         }
 
         //initializeCharts()
@@ -794,3 +796,92 @@ document.addEventListener("DOMContentLoaded", () => {
     const chartManager = new ChartManager();
     chartManager.initializeCharts();
 });
+
+function setupTabs() {
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Remove active class from all buttons and contents
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Add active class to clicked button
+            button.classList.add('active');
+            
+            // Show corresponding content
+            const tabId = button.getAttribute('data-tab');
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
+}
+
+// Resource tab content generator
+function populateResourcesTab(archetype) {
+    const resourcesGrid = document.querySelector('.resources-grid');
+    resourcesGrid.innerHTML = ''; // Clear existing content
+    
+    // Fetch resources from server based on archetype
+    fetchResourcesForArchetype(archetype)
+        .then(resources => {
+            // Generate resource cards
+            resources.forEach(resource => {
+                const card = document.createElement('div');
+                card.className = 'resource-card';
+                
+                card.innerHTML = `
+                    <h3>${resource.title}</h3>
+                    <p>${resource.description}</p>
+                    <div class="resource-links">
+                        ${resource.links.map(link => `
+                            <a href="${link.url}" class="resource-link" onclick="return false;">
+                                ${link.type} <span class="resource-arrow">→</span>
+                            </a>
+                        `).join('')}
+                    </div>
+                `;
+                
+                resourcesGrid.appendChild(card);
+            });
+        })
+        .catch(error => {
+            console.error("Error fetching resources:", error);
+            resourcesGrid.innerHTML = '<p class="error-message">Failed to load resources. Please try again later.</p>';
+        });
+}
+
+populateResourcesTab()
+
+// Fetch resources from Flask server
+async function fetchResourcesForArchetype(archetype) {
+    try {
+        const response = await fetch(`/get_resources/${archetype}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        data = await response.json();
+        return data;
+
+    } catch (error) {
+        console.error("Error fetching resources:", error);
+        console.log("encountered an error")
+        // Return default resources as fallback
+        return [
+            {
+                title: "Understanding Jungian Archetypes",
+                description: "An introduction to Carl Jung's theory of archetypes and their significance in dream interpretation.",
+                links: [
+                    { type: "Article", url: "https://conorneill.com/2018/04/21/understanding-personality-the-12-jungian-archetypes/" },
+                ]
+            },
+            {
+                title: "Dream Symbolism Dictionary",
+                description: "Comprehensive guide to common dream symbols and their potential meanings across cultures.",
+                links: [
+                    { type: "Reference", url: "https://www.dreamdictionary.org/" }
+                ]
+            }
+        ];
+    }
+}

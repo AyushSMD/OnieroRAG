@@ -1,0 +1,24 @@
+[
+    {
+        "title": "The Explorer Archetype",
+        "description": "Deep dive into the Explorer archetype and its manifestations in dreams, literature, and culture.",
+        "links": [
+            {"type": "Study", "url": "https://www.dabblewriter.com/articles/the-explorer-archetype"}
+        ]
+    },
+    {
+        "title": "Journey Symbolism in Dreams",
+        "description": "Understanding the significance of travel, discovery, and search motifs in dreams related to the Explorer archetype.",
+        "links": [
+            {"type": "Analysis", "url": "https://www.wisdomlib.org/concept/journey-in-dream"},
+            {"type": "Interpretation Guide", "url": "https://www.auntyflo.com/dream-dictionary/journey"}
+        ]
+    },
+    {
+        "title": "Understanding Jungian Archetypes",
+        "description": "An introduction to Carl Jung's theory of archetypes and their significance in dream interpretation.",
+        "links": [
+            {"type": "Article", "url": "https://conorneill.com/2018/04/21/understanding-personality-the-12-jungian-archetypes/"}
+        ]
+    }
+]
