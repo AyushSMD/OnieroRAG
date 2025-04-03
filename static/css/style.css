@@ -53,6 +53,54 @@ h2,h3,h4,h5,p,.w,ul {
     font-family: 'oxygen',sans-serif;
 }
 
+/* Tab Navigation */
+.tabs-container {
+    width: 80%;
+    max-width: 700px;
+    margin: 0 auto;
+    margin-top: 2rem;
+}
+
+.tabs {
+    display: grid;
+    border-bottom: 1px solid #636363;
+    margin-bottom: 1rem;
+    place-items: center;
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.tab-btn {
+    padding: 0.75rem 1.5rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+    border-bottom: 2px solid transparent;
+}
+
+.tab-btn:hover {
+    opacity: 1;
+}
+
+.tab-btn.active {
+    opacity: 1;
+    border-bottom: 2px solid #5964F3;
+}
+
+/* .tab-content {
+    display: none;
+} */
+
+.tab-content.active {
+    display: grid;
+    animation: fade-in 0.5s ease;
+    place-items: center;
+}
+
+
 .container {
     display: grid;
     max-width: 1400px;

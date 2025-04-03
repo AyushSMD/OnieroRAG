@@ -20,6 +20,10 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///queries.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 IST = pytz.timezone("Asia/Kolkata")
+RESOURCES_DIR = "static/resources"
+df = pd.read_csv("static/assets/facebook_dream_archetypes.csv")
+dream_text = ""
+selected_archetype = ""
 
 # Database Model for Logging Queries, Responses, and Chart Data
 class QueryLog(db.Model):
@@ -50,12 +54,44 @@ app.json_encoder = NumpyEncoder
 def json_listify(data: dict) -> str:
     return json.dumps([{"_id_": key, "_text_": value} for key, value in data.items()])
 
+# Calculate rarity score based on archetype distribution
+def calculate_rarity_score(archetype):
+    # Rarity is inversely proportional to frequency
+    # higher the number here, more common it is
+    archetype_weights = {
+        'explorer': 0.3,
+        'everyman': 1,
+        'hero': 0.15,
+        'outlaw': 0.1,
+        'sage': 0.1,
+        'creator': 0.1,
+        'caregiver': 0.5,
+        'lover': 0.7
+    }
+    
+    # Calculate base rarity (rare archetypes = high score)
+    base_rarity = 100 - (archetype_weights.get(archetype, 0.5) * 100)
+    
+    # Add some randomness for variability
+    randomness = np.random.normal(0, 10)
+    
+    # Ensure score is between 0 and 100
+    score = max(0, min(100, base_rarity + randomness))
+    
+    # Convert to native Python float
+    score = float(round(score, 1))
+    
+    return score
+
 @app.route("/", methods=["GET"])
 def home():
     return render_template("index.html")
 
 @app.route("/llm", methods=["POST"])
 def llm_():
+    global dream_text
+    global selected_archetype
+
     if "dream" not in request.form or not request.form["dream"].strip():
         return jsonify({"error": "Dream text is required"}), 400
     
@@ -64,6 +100,7 @@ def llm_():
     json_response = json_listify(data)
 
     new_entry = QueryLog(dream_text=dream_text, response_data=json_response)
+    selected_archetype = data['archetype']
     db.session.add(new_entry)
     db.session.commit()
     
@@ -103,31 +140,84 @@ def get_query_by_id(query_id):
 # Chart Data Storage and Retrieval
 @app.route('/get_bar_data')
 def get_bar_data():
-    df = pd.read_csv("static/assets/facebook_dream_archetypes.csv")
+    # Convert to the format expected by Chart.js
     counts = df['archetype'].value_counts()
-    data = json.dumps({ 'labels': counts.index.tolist(), 'values': counts.values.tolist() })
-    new_entry = ChartData(chart_type="bar", data=data)
-    db.session.add(new_entry)
-    db.session.commit()
-    return jsonify(json.loads(data))
+    
+    # Convert NumPy types to native Python types
+    data = {
+        'labels': counts.index.tolist(),
+        'values': [int(val) for val in counts.values.tolist()]
+    }
+    
+    return jsonify(data)
+
+@app.route("/get_doughnut_data")
+def get_doughnut_data():
+    __v__ = the_big_dipper.vector_store_reader(
+        load_dir_path="scripts/pickles",
+        store_names=["facebook_dream_archetypes_store.dat"],
+        use_cpu=int(os.getenv("USE_CPU", "1")),
+    )
+    
+    results = __v__.vector_store["facebook_dream_archetypes_store"].similarity_search(dream_text)
+    
+    # Convert to the format expected by Chart.js
+    counts = pd.Series([df.loc[_.metadata["row"]]["archetype"] for _ in results]).value_counts()
+    
+    # Convert NumPy types to native Python types
+    data = {
+        'labels': counts.index.tolist(),
+        'values': [int(val) for val in counts.values.tolist()]
+    }
+    
+    return jsonify(data)
+
+@app.route('/get_rarity_score')
+def get_rarity_score():
+    score = calculate_rarity_score(selected_archetype)
+    
+    return jsonify({
+        'score': score,
+        'archetype': selected_archetype
+    })
+
+def generate_time_series_data():
+    archetypes = ['explorer', 'everyman', 'hero', 'outlaw', 'sage']
+    end_date = datetime.now()
+    
+    # Generate dates for the past 6 months
+    dates = [(end_date - timedelta(days=i*30)).strftime('%Y-%m') for i in range(6)]
+    dates.reverse()  # Chronological order
+    
+    data = []
+    for archetype in archetypes:
+        # Generate somewhat smooth trend with some randomness
+        base_value = np.random.randint(5, 15)
+        trend = np.random.choice([-1, 0, 1])  # Trend direction
+        values = []
+        
+        for i in range(len(dates)):
+            # Value changes with some trend and randomness
+            val = max(1, base_value + trend * i + np.random.randint(-3, 4))
+            # Convert NumPy int64 to regular Python int
+            val = int(val)
+            values.append(val)
+        
+        data.append({
+            'archetype': archetype,
+            'values': values
+        })
+    
+    return {
+        'dates': dates,
+        'data': data
+    }
 
 @app.route('/get_time_series_data')
 def get_time_series_data():
-    archetypes = ['explorer', 'everyman', 'hero', 'outlaw', 'sage']
-    end_date = datetime.now()
-    dates = [(end_date - timedelta(days=i*30)).strftime('%Y-%m') for i in range(6)][::-1]
-    
-    data = [{
-        'archetype': archetype,
-        'values': [max(1, np.random.randint(5, 15) + np.random.choice([-1, 0, 1]) * i + np.random.randint(-3, 4)) for i in range(len(dates))]
-    } for archetype in archetypes]
-    
-    json_data = json.dumps({'dates': dates, 'data': data})
-    new_entry = ChartData(chart_type="time_series", data=json_data)
-    db.session.add(new_entry)
-    db.session.commit()
-    
-    return jsonify(json.loads(json_data))
+    time_data = generate_time_series_data()
+    return jsonify(time_data)
+
 
 @app.route("/get_chart_history", methods=["GET"])
 def get_chart_history():
@@ -138,3 +228,4 @@ if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     app.run(host='0.0.0.0', port=8000, debug=True)
+

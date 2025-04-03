@@ -66,7 +66,49 @@
                     </form>
                 </div>
                 <div class="cbitem">
-                    <div class="container-t" id="contentContainer"></div>
+                    <div class="tabs-container invisible">
+                        <div class="tabs">
+                            <button class="tab-btn active" data-tab="interpretation">Interpretation</button>
+                            <button class="tab-btn" data-tab="visualization">Visualization</button>
+                            <button class="tab-btn" data-tab="resources">Further Reading</button>
+                        </div>
+                    </div>
+                    <div class="container-t" id="contentContainer">
+                        
+                    </div>
+                    <div id="visualization" class="tab-content">
+                        <div class="chart-container">
+                            <div class="chart-row">
+                                <div class="chart-card">
+                                    <div class="chart-title">Archetype Distribution</div>
+                                    <canvas id="barChart"></canvas>
+                                </div>
+                                <div class="chart-card">
+                                    <div class="chart-title">Archetypes in Similar Dreams</div>
+                                    <canvas id="doughnutChart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="chart-row">
+                                <div class="chart-card full-width">
+                                    <div class="chart-title">Archetype Frequency Over Time</div>
+                                    <div class="chart-subtitle">6-Month Trend Analysis</div>
+                                    <canvas id="timeSeriesChart"></canvas>
+                                </div>
+                            </div>
+                            
+                            <div class="chart-row">
+                                <div class="chart-card">
+                                    <div class="chart-title">Dream Rarity Analysis</div>
+                                    <div class="chart-subtitle">How unique is your dream pattern?</div>
+                                    <div class="gauge-container">
+                                        <canvas id="rarityGauge"></canvas>
+                                        <div id="rarityDescription" class="rarity-description">Loading...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <!-- <p id="response"></p> -->
                 <div class="footer">
@@ -76,6 +118,7 @@
             </div>
             <div class="darken"></div>
         </main>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script src="../static/main.js"></script>
         <!-- <script src="../static/animations.js"></script> -->
     </body>
