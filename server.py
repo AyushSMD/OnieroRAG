@@ -129,11 +129,25 @@ def get_history_by_date(date):
 
 @app.route("/query/<int:query_id>", methods=["GET"])
 def get_query_by_id(query_id):
+    global dream_text
+    global selected_archetype
+
     query = QueryLog.query.get_or_404(query_id)
+    dream_text = query.dream_text
+
+    response_data = json.loads(query.response_data)
+    # Look for the archetype in the response data
+    for item in response_data:
+        if item.get("_id_") == "archetype":
+            selected_archetype = item.get("_text_")
+            break
+    else:
+        selected_archetype = ""  # Fallback if not found
+
     return jsonify({
         "id": query.id,
         "dream_text": query.dream_text,
-        "response_data": json.loads(query.response_data),
+        "response_data": response_data,
         "timestamp": query.timestamp.strftime("%Y-%m-%d %H:%M:%S")
     })
 
@@ -160,6 +174,7 @@ def get_doughnut_data():
     )
     
     results = __v__.vector_store["facebook_dream_archetypes_store"].similarity_search(dream_text)
+    print("/n/n",dream_text,"/n/n")
     
     # Convert to the format expected by Chart.js
     counts = pd.Series([df.loc[_.metadata["row"]]["archetype"] for _ in results]).value_counts()
