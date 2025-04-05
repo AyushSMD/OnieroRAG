@@ -2,6 +2,7 @@
 const textarea = document.getElementById("dream");
 const form = document.getElementById("dreamForm");
 const responseDiv = document.getElementById("response");
+const responseBox = document.getElementById("response-box")
 const container = document.getElementById("contentContainer");
 const submitButton = document.getElementById("submitButton");
 const historyList = document.getElementById("history-list");
@@ -81,7 +82,6 @@ form.addEventListener("submit", async function (event) {
         try {
             displayResults(jsonResponse); //  Safe execution
             submitButton.blur();
-            dreamInput.value = ""; // Clear input after submission
             
             // If today is selected in the calendar, refresh history
             const today = new Date().toDateString();
@@ -96,7 +96,8 @@ form.addEventListener("submit", async function (event) {
         console.error("Fetch error:", error);
     } finally {
         // Hide generating indicator
-        genLoad.style.display = "none";
+        // genLoad.style.display = "none";
+        stopAnimations()
     }
 });
 
@@ -312,6 +313,12 @@ function displayResults(parsedData) {
     interpretation.innerHTML = "";
     let archetype = null;
     let t = 1;
+    try{
+        responseBox.classList.remove("invisible") 
+    }
+    catch{
+        console.log("nahi hua")
+    }
 
     function createElementFromKeyValue(key, value, level = 2) {
         let section = document.createElement("div");
@@ -382,6 +389,8 @@ function displayResults(parsedData) {
 
     const chartManager = new ChartManager();
     chartManager.initializeCharts();
+
+    populateResourcesTab(archetype)
 }
 
 // Set initial state - select today's date if available
@@ -793,8 +802,9 @@ class ChartManager {
 
 // Initialize charts when the DOM is fully loaded
 document.addEventListener("DOMContentLoaded", () => {
-    const chartManager = new ChartManager();
-    chartManager.initializeCharts();
+    // const chartManager = new ChartManager();
+    // chartManager.initializeCharts();
+    responseBox.classList.add("invisible")
 });
 
 function setupTabs() {
@@ -851,7 +861,7 @@ function populateResourcesTab(archetype) {
         });
 }
 
-populateResourcesTab()
+
 
 // Fetch resources from Flask server
 async function fetchResourcesForArchetype(archetype) {
@@ -883,5 +893,108 @@ async function fetchResourcesForArchetype(archetype) {
                 ]
             }
         ];
+    }
+}
+
+// animation
+let highlightInterval = null;
+let fadeTimeouts = [];
+
+document.querySelector(".send-button").addEventListener("click", async () => {
+    stopAnimations(); // Optional: reset before running again
+    await runAnimations();
+});
+
+async function runAnimations() {
+    animateOut();
+
+    // Wait for animateOut to mostly finish
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    loadingAnimation();
+    startLetterHighlighting();
+}
+
+function animateOut(){
+    const container = document.getElementById("projectName");
+    const text = container.textContent.trim();
+    container.textContent = "";
+
+    const letters = text.split("").map(char => {
+        const span = document.createElement("span");
+        span.textContent = char;
+        span.classList.add("letter2");
+        container.appendChild(span);
+        return span;
+    });
+
+    let currentIndex = 0;
+
+    function animateLetters() {
+        if (currentIndex < letters.length) {
+            letters[currentIndex].classList.add("fade");
+            const timeout = setTimeout(animateLetters, 100);
+            fadeTimeouts.push(timeout);
+            currentIndex++;
+        }
+    }
+
+    animateLetters();
+}
+
+function loadingAnimation(){
+    const gen = document.querySelector(".gen");
+    if (gen) {
+        gen.classList.add("loading");
+    }
+}
+
+function startLetterHighlighting() {
+    const container = document.getElementById("genLoad");
+    const text = container.textContent.trim();
+    container.textContent = "";
+    const letters = [];
+
+    text.split("").forEach((char) => {
+        const span = document.createElement("span");
+        span.textContent = char;
+        span.classList.add("letter");
+        container.appendChild(span);
+        letters.push(span);
+    });
+
+    let currentIndex = 0;
+
+    highlightInterval = setInterval(() => {
+        letters.forEach(letter => letter.classList.remove("highlight"));
+        letters[currentIndex].classList.add("highlight");
+        currentIndex = (currentIndex + 1) % letters.length;
+    }, 1000);
+}
+
+function stopAnimations() {
+    // Stop letter fade animation
+    fadeTimeouts.forEach(timeout => clearTimeout(timeout));
+    fadeTimeouts = [];
+
+    // Stop looping highlight animation
+    if (highlightInterval) {
+        clearInterval(highlightInterval);
+        highlightInterval = null;
+    }
+
+    // Remove animation classes
+    document.querySelectorAll(".letter2.fade, .letter.highlight").forEach(el => {
+        el.classList.remove("fade", "highlight");
+    });
+
+    // Remove loading class
+    const gen = document.querySelector(".gen");
+    if (gen) gen.classList.remove("loading");
+
+    // Show Orino Rag
+    const orinoRag = document.querySelector(".orino-rag");
+    if (orinoRag) {
+        orinoRag.style.display = "block"; // Or you can use visibility or add a show class
     }
 }

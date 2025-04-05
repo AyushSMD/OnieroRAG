@@ -52,6 +52,10 @@ h2,h3,h4,h5,p,.w,ul {
     font-family: 'oxygen',sans-serif;
 }
 
+.response-box.invisible {
+    display: none;
+}
+
 /* Tab Navigation */
 .tabs-container {
     width: 80%;

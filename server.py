@@ -4,12 +4,17 @@ import time
 import pytz
 import numpy as np
 import pandas as pd
+import torch
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, Response, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from scripts import the_big_dipper
+
+print(torch.cuda.is_available())
+print( torch.cuda.device_count())
+print(torch.cuda.get_device_name(0))
 
 load_dotenv()
 app = Flask(__name__)
@@ -174,7 +179,6 @@ def get_doughnut_data():
     )
     
     results = __v__.vector_store["facebook_dream_archetypes_store"].similarity_search(dream_text)
-    print("/n/n",dream_text,"/n/n")
     
     # Convert to the format expected by Chart.js
     counts = pd.Series([df.loc[_.metadata["row"]]["archetype"] for _ in results]).value_counts()
