@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from langchain_groq import ChatGroq
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate
 import pickle
@@ -12,7 +13,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-llm = ChatOllama(
+OFFLINE_MODE = int(os.getenv("OFFLINE_MODE", "0"))
+
+llm = ChatGroq(
+    model="llama-3.1-8b-instant",
+    temperature=0,
+    max_tokens=None,
+    timeout=None,
+    max_retries=2,
+) if not OFFLINE_MODE else ChatOllama(
     model="llama3.2:3b",
     temperature=0,
     # other params...
@@ -59,6 +68,7 @@ class initialize_dream:
         print("performing similarity search...", end=" ", flush=True)
         jung_interpretations_results = v_.vector_store["jung_interpretations_store"].similarity_search(dream_text)
         personality_types_results = v_.vector_store["personality_types_store"].similarity_search(dream_text)
+        # facebook_dream_archetypes_results = v_.vector_store["facebook_dream_archetypes_store"].similarity_search(dream_text)
         print("done")
 
         def __parse__(result):
@@ -67,7 +77,9 @@ class initialize_dream:
         print("preparing context...", end=" ", flush=True)
         self.jung_interpretations_context = __parse__(jung_interpretations_results)
         self.personality_types_context = __parse__(personality_types_results)
+        # self.facebook_dream_archetypes_context = __parse__(facebook_dream_archetypes_results)
         print("done")
+
 
 def get_archetype(term):
     archetypes = {
@@ -91,6 +103,7 @@ def get_archetype(term):
     
     return "everyman"
 
+
 def clean_dict(d, min_length=5):
     if isinstance(d, dict):
         return {
@@ -102,17 +115,15 @@ def clean_dict(d, min_length=5):
         return [clean_dict(item, min_length) for item in d if isinstance(item, (dict, list)) or (isinstance(item, str) and len(item.strip()) >= min_length)]
     return d
 
-def main(dream_text: str) -> dict:
-    dream = initialize_dream(dream_text=dream_text)
-    data = {}
 
+def fetch_archetype(dream_text:str, llm, dream:initialize_dream) -> str:
     class archetype_classification(BaseModel):
         """Dream Analysis."""
 
         archetype: str = Field(
             description="Archetype based on Jungian personality interpretation and dream."
         )
-
+        
     archetype = json.loads(
         llm.with_structured_output(archetype_classification)
         .invoke(
@@ -120,53 +131,74 @@ def main(dream_text: str) -> dict:
         )
         .model_dump_json()
     )["archetype"].lower().strip().strip("the").strip()
+    return get_archetype(archetype)
 
-    print(f"\n====== [ORIGINAL ARCHETYPE: {archetype}] ======")
-    archetype = get_archetype(archetype)
-    print(f"====== [FINAL ARCHETYPE: {archetype}] ======\n")
 
+def main(dream_text: str, log_output=False) -> dict:
+    dream = initialize_dream(dream_text=dream_text)
+    data = {}
+
+    archetype = fetch_archetype(dream_text, llm, dream)
     data["archetype"] = archetype
 
-    prompt = ChatPromptTemplate.from_template(
-        """
-        Give an analysis of the given dream, with respect to the given Jungian archetype.
+    if OFFLINE_MODE:
+        prompt = ChatPromptTemplate.from_template(
+            """
+            Give an analysis of the given dream, with respect to the given Jungian archetype.
 
-        Dream: {dream_text}
-        Jungian Archetype: {archetype}
+            Dream: {dream_text}
+            Jungian Archetype: {archetype}
 
-        Also tell the user how to interpret the dream, using the following context:
-        Context: {context}
+            Also tell the user how to interpret the dream, using the following context:
+            Context: {context}
 
-        Give your answer in a json.
-        """
-    )
-    
-    chain = prompt | llm
-    descriptive_content = chain.invoke(
-        {
-            "dream_text": dream_text,
-            "archetype": "The " + archetype,
-            "context": f"{dream.jung_interpretations_context}",
-            # "freud_interpretations": dream.freud_interpretations_context,
-        }
-    ).content
+            Give your answer in a json.
+            """
+        )
 
-    try:
-        _ = descriptive_content.split("```")[1]
-        __ = re.sub("\}\n\n\{", ",", _)
-        descriptive_content = json.loads(__)
-        descriptive_content = clean_dict(descriptive_content)
+        chain = prompt | llm
+        descriptive_content = chain.invoke(
+            {
+                "dream_text": dream_text,
+                "archetype": "The " + archetype,
+                "context": f"{dream.jung_interpretations_context}",
+                # "freud_interpretations": dream.freud_interpretations_context,
+            }
+        ).content
 
-    except (json.decoder.JSONDecodeError, IndexError) as e:
-        print("[DECODE ERROR]", e)
-        del dream
-        # return {"archetype": "DECODE_ERROR"}
-        return e
+        try:
+            _ = descriptive_content.split("```")[1]
+            __ = re.sub("\}\n\n\{", ",", _)
+            descriptive_content = json.loads(__)
+            descriptive_content = clean_dict(descriptive_content)
+
+        except (json.decoder.JSONDecodeError, IndexError) as e:
+            print("[DECODE ERROR]", e)
+            del dream
+            return
+
+
+    else:
+        structured_llm = llm.with_structured_output(method="json_mode", include_raw=False)
+        descriptive_content = structured_llm.invoke(
+            f"""
+            Give an analysis of the given dream, with respect to the given Jungian archetype.
+
+            Dream: {dream_text}
+            Jungian Archetype: {archetype}
+
+            Also tell the user how to interpret the dream, using the following context:
+            Context: {dream.jung_interpretations_context}
+
+            Give your answer in a json.
+            """
+        )
 
     data["descriptive_content"] = descriptive_content
-    del dream
 
-    print("\nData Sent:\n", data, "\n\n[TRANSACTION COMPLETE] sending over data, have fun :D\n\n")
+    del dream
+    if log_output: print("\nData Sent:\n", data, "\n\n[TRANSACTION COMPLETE] sending over data, have fun :D\n")
+    else: print("[TRANSACTION COMPLETE]")
     return data
 
 
@@ -174,4 +206,4 @@ if __name__ == "__main__":
     # with open("assets/input.txt") as f:
     #   dream_text = f.read()
 
-    print(main(dream_text="I was my mother"))
+    main(dream_text="I was my mother", log_output=True)

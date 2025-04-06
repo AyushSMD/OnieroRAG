@@ -4,17 +4,18 @@ import time
 import pytz
 import numpy as np
 import pandas as pd
-import torch
+# import torch
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from flask import Flask, render_template, request, Response, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from scripts import the_big_dipper
+from prometheus_client import Counter, Histogram, Summary, Gauge, Info, generate_latest, REGISTRY, CollectorRegistry
 
-print(torch.cuda.is_available())
-print( torch.cuda.device_count())
-print(torch.cuda.get_device_name(0))
+# print(torch.cuda.is_available())
+# print( torch.cuda.device_count())
+# print(torch.cuda.get_device_name(0))
 
 load_dotenv()
 app = Flask(__name__)
@@ -43,6 +44,28 @@ class ChartData(db.Model):
     data = db.Column(db.Text, nullable=False)
     timestamp = db.Column(db.DateTime, default=lambda: datetime.now(pytz.utc).astimezone(IST))
 
+
+
+# Define Prometheus metrics
+DREAM_SUBMISSIONS = Counter('dream_submissions_total', 'Total number of dreams submitted', ['status'])
+ENDPOINT_REQUESTS = Counter('endpoint_requests_total', 'Total requests per endpoint', ['endpoint', 'method', 'status_code'])
+REQUEST_LATENCY = Histogram('request_latency_seconds', 'Request latency in seconds', ['endpoint'])
+DREAM_PROCESSING_TIME = Summary('dream_processing_seconds', 'Time spent processing dreams')
+ACTIVE_USERS = Gauge('active_users', 'Number of active users')
+APP_INFO = Info('dream_analyzer', 'Dream analyzer application information')
+
+# Set application info
+APP_INFO.info({'version': '1.0.0', 'maintainer': 'Dream Team'})
+
+# Archetype distribution gauge
+ARCHETYPE_DISTRIBUTION = Gauge('archetype_distribution', 'Distribution of dream archetypes', ['archetype'])
+
+# Initialize distribution based on data frame
+for archetype, count in df['archetype'].value_counts().items():
+    ARCHETYPE_DISTRIBUTION.labels(archetype).set(count)
+
+
+
 # JSON Encoder for NumPy Types
 class NumpyEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -58,6 +81,42 @@ app.json_encoder = NumpyEncoder
 
 def json_listify(data: dict) -> str:
     return json.dumps([{"_id_": key, "_text_": value} for key, value in data.items()])
+
+
+# Generate time series data for archetypes
+def generate_time_series_data():
+    archetypes = ['explorer', 'everyman', 'hero', 'outlaw', 'sage']
+    end_date = datetime.now()
+    
+    # Generate dates for the past 6 months
+    dates = [(end_date - timedelta(days=i*30)).strftime('%Y-%m') for i in range(6)]
+    dates.reverse()  # Chronological order
+    
+    data = []
+    for archetype in archetypes:
+        # Generate somewhat smooth trend with some randomness
+        base_value = np.random.randint(5, 15)
+        trend = np.random.choice([-1, 0, 1])  # Trend direction
+        values = []
+        
+        for i in range(len(dates)):
+            # Value changes with some trend and randomness
+            val = max(1, base_value + trend * i + np.random.randint(-3, 4))
+            # Convert NumPy int64 to regular Python int
+            val = int(val)
+            values.append(val)
+        
+        data.append({
+            'archetype': archetype,
+            'values': values
+        })
+    
+    return {
+        'dates': dates,
+        'data': data
+    }
+
+
 
 # Calculate rarity score based on archetype distribution
 def calculate_rarity_score(archetype):
@@ -88,28 +147,69 @@ def calculate_rarity_score(archetype):
     
     return score
 
+
+# Middleware for tracking request metrics
+@app.before_request
+def before_request():
+    request.start_time = time.time()
+    ACTIVE_USERS.inc()
+
+@app.after_request
+def after_request(response):
+    request_latency = time.time() - request.start_time
+    ENDPOINT_REQUESTS.labels(
+        endpoint=request.path, 
+        method=request.method,
+        status_code=response.status_code
+    ).inc()
+    REQUEST_LATENCY.labels(endpoint=request.path).observe(request_latency)
+    ACTIVE_USERS.dec()
+    return response
+
+
+
 @app.route("/", methods=["GET"])
 def home():
     return render_template("index.html")
 
+# Prometheus metrics endpoint on the same server
+@app.route('/metrics')
+def metrics():
+    return Response(generate_latest(REGISTRY), mimetype='text/plain')
 @app.route("/llm", methods=["POST"])
 def llm_():
     global dream_text
     global selected_archetype
 
-    if "dream" not in request.form or not request.form["dream"].strip():
-        return jsonify({"error": "Dream text is required"}), 400
-    
-    dream_text = request.form["dream"].strip()
-    data = the_big_dipper.main(dream_text=dream_text)
-    json_response = json_listify(data)
+    # Track dream processing time
+    with DREAM_PROCESSING_TIME.time():
+        try:
+            if "dream" not in request.form or not request.form["dream"].strip():
+                return jsonify({"error": "Dream text is required"}), 400
+            
+            dream_text = request.form["dream"].strip()
+            data = the_big_dipper.main(dream_text=dream_text)
+            json_response = json_listify(data)
 
-    new_entry = QueryLog(dream_text=dream_text, response_data=json_response)
-    selected_archetype = data['archetype']
-    db.session.add(new_entry)
-    db.session.commit()
-    
-    return Response(json_response, mimetype="application/json")
+            new_entry = QueryLog(dream_text=dream_text, response_data=json_response)
+            selected_archetype = data['archetype']
+
+            # Update archetype distribution
+            ARCHETYPE_DISTRIBUTION.labels(selected_archetype).inc()
+            
+            # Record successful submission
+            DREAM_SUBMISSIONS.labels(status='success').inc()
+
+            db.session.add(new_entry)
+            db.session.commit()
+            
+            return Response(json_response, mimetype="application/json")
+        except Exception as e:
+            # Record failed submission
+            DREAM_SUBMISSIONS.labels(status='error').inc()
+            print(f"Error processing dream: {e}")
+            return jsonify({"error": "Failed to process dream"}), 500
+
 
 @app.route("/history/<date>", methods=["GET"])
 def get_history_by_date(date):
@@ -294,5 +394,6 @@ def get_resources(archetype):
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    app.run(host='0.0.0.0', port=8000, debug=True)
+    print("Starting server on localhost:8000, with Prometheus!")
+    app.run(port=8000, debug=True)
 
