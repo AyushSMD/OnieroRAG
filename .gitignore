@@ -9,3 +9,4 @@ scripts/pickles/*
 .idea
 __pycache__
 log*
+instance/*
