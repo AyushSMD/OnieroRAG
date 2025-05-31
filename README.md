@@ -1,4 +1,4 @@
-# mini-project thingy
+# Onerio RAG
 
 ## Dependencies
 - [Git](https://git-scm.com/downloads/), for version control

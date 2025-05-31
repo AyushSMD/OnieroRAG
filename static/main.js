@@ -101,6 +101,57 @@ form.addEventListener("submit", async function (event) {
     }
 });
 
+const wrapper = document.getElementById("wrapper")
+const navbar = document.getElementById("navbar")
+const navbarButton = document.querySelector(".navbarButton");
+const mainBox = document.querySelector(".mainBox");
+const footer = document.querySelector(".footer");
+const topStrip = document.querySelector(".Topstrip")
+const darken = document.querySelector(".darken")
+
+document.querySelector(".navbarButton").addEventListener("click", async () => {
+    const currentOpacity = window.getComputedStyle(wrapper).opacity;
+    if (window.innerWidth <= 1050 || window.innerHeight>window.innerWidth){
+        navbar.style.left = "-300px";
+        darken.style.display = "none"
+    }
+    else{
+        if (currentOpacity === "1"){
+            wrapper.style.opacity = "0";
+            navbar.style.left = "-245px";
+            mainBox.style.margin = "0px 0px 0px 55px";
+            topStrip.style.width = "calc(100% - 55px)"
+            footer.style.left = "55px"
+            footer.style.width = "calc(100% - 55px)"
+            navbarButton.style.transform = "rotate(180deg)";
+        } else {
+            wrapper.style.opacity = "1";
+            navbar.style.left = "0px";
+            mainBox.style.margin = "0px 0px 0px 300px";
+            topStrip.style.width = "calc(100% - 300px)";
+            footer.style.left = "300px"
+            footer.style.width = "calc(100% - 300px)"
+            navbarButton.style.transform = "rotate(0deg)";
+        }
+    }
+});
+
+document.querySelector(".navbarButton2").addEventListener("click", async () => {
+    const currentOpacity = window.getComputedStyle(wrapper).opacity;
+    if (currentOpacity === "1"){
+        darken.style.display = "flex"
+        wrapper.style.opacity = "1";
+        navbar.style.left = "0px";
+        mainBox.style.margin = "0px 0px 0px 300px";
+        navbarButton.style.transform = "rotate(0deg)";
+    }
+});
+
+darken.addEventListener("click", async () => {
+    navbar.style.left = "-300px";
+    darken.style.display = "none"
+});
+
 // Calendar logic
 let display = document.querySelector(".display");
 let days = document.querySelector(".days");

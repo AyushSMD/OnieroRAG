@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <title>Onerio RAG</title>
+        <title>Oneiro RAG</title>
         <link rel="icon" href="../static/assets/favicon.svg" sizes="any" type="image/svg+xml">
         <link rel="stylesheet" href="../static/css/style.css"/>
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,8 +14,11 @@
     </head>
     <body>
         <nav id="navbar" class="navbar">
-            <h3 class="history">Chat History</h3>
-            <div class="wrapper">
+            <div class="historyHeading">
+                <h3 class="history">Chat History</h3>
+                <img alt="navbar show button" src="../static/assets/navbar-button.svg" class="navbarButton">
+            </div>
+            <div class="wrapper" id="wrapper">
                 <div class="container">
                   <div class="calendar">
                     <header>
@@ -50,12 +53,17 @@
                 </ul>
             </div>
         </nav>
-        <main class="in">
+        <div class="darken"></div>
+        <main class="mainBox">
+            <div class="Topstrip">
+                <img alt="navbar show button" src="../static/assets/navbar-button.svg" class="navbarButton2 hide">
+                <h1 class="modelName">Oneiro RAG</h1>
+                <a href="https://github.com/AyushSMD/OnieroRAG" target="_blank"><img alt="github logo" src="../static/assets/github.svg" class="github"></a>
+            </div>
             <div class="centerBox">
-                <div class="cbitem"></div>
                 <div class="cbitem tbAndTa">
                     <div class="titleBox">
-                        <h1 class="mainTitle" id="projectName">Oniero RAG</h1>
+                        <h1 class="subtitle" id="projectName">Understand your dreams</h1>
                         <h1 class="gen" id="genLoad">Generating</h1>
                     </div>
                     <form id="dreamForm">
@@ -133,7 +141,6 @@
                 </div>
                 
             </div>
-            <div class="darken"></div>
         </main>
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script src="../static/main.js"></script>
